@@ -1,0 +1,7 @@
+Welcome to the Modular Backbone homepage.
+
+<ul>
+  <% _.each(arr, function(row){ %>
+   <li><%= row.get("name") %> - <%= row.get("score") %> - <%= row.get("default_data") %></li> 
+  <% }); %>
+</ul>

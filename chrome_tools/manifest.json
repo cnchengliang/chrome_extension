@@ -1,0 +1,47 @@
+{
+   "background_page": "background.html",
+   "browser_action": {
+      "default_icon": "res/icon32.png",
+	  "default_title": "__MSG_actionTitle__"
+   },
+   "content_scripts": [ {
+	  "matches" : [ "http://*/*", "https://*/*" ],
+      "js": [ "js/libs/require/require.js", "js/main.js" ]
+   }, {
+      "all_frames": true,
+      "js": [ "js/document_start.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+	  "run_at": "document_start"
+   }, {
+      "all_frames": true,
+      "js": [ "js/document_idle.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+	  "run_at": "document_idle"
+   }, {
+      "all_frames": true,
+      "js": [ "js/document_end.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+	  "run_at": "document_end"
+   }],
+   "default_locale": "zh",
+   "icons": {
+      "128": "res/icon128.png",
+      "32": "res/icon32.png",
+      "48": "res/icon48.png",
+      "52": "res/icon52.png",
+      "92": "res/icon92.png"
+   },
+   "name": "My Chrome Tools",
+   "options_page": "options.html",
+   "permissions": [ "cookies", "proxy", "tabs", "http://*/*", "https://*/*", "unlimitedStorage", "notifications", "experimental" ],
+   "version": "0.1",
+   "plugins": [ {
+   		"path": "plugin/simple_plugin.dll"
+      
+   }, {
+    	"path": "plugin/simple_plugin.so"
+   }, {
+    "path": "plugin/simple_plugin_64.so"
+   }]
+   
+}

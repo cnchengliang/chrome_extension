@@ -1,0 +1,146 @@
+body {
+  cursor: default;
+  font-size: 13px;
+  font-family: Arial, sans-serif;
+}
+
+#settings-title {
+  -webkit-padding-end: 24px;
+  -webkit-user-select: none;
+  background-color: transparent;
+  color: #53637d;
+  cursor: pointer;
+  font-size: 200%;
+  font-weight: normal;
+  margin: 0;
+  padding-bottom: 14px;
+  padding-top: 13px;
+  text-align: end;
+  text-shadow: white 0 1px 2px;
+}
+
+#main-content {
+  display: -webkit-box;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#mainview {
+  -webkit-box-align: stretch;
+  -webkit-padding-start: 267px;
+  margin: 0;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+}
+
+#mainview-content {
+  box-sizing: border-box;
+  max-width: 888px;
+  min-height: 100%;
+  min-width: 600px;
+  padding: 0 24px;
+  position: relative;
+}
+
+#navbar {
+  margin: 0;
+}
+
+#navbar-container {
+  -webkit-border-end: 1px solid #c6c9ce;
+  background: -webkit-linear-gradient(rgba(234, 238, 243, 0.2), #eaeef3),
+              -webkit-linear-gradient(left, #eaeef3, #eaeef3 97%, #d3d7db);
+  bottom: 0;
+  left: 0;
+  top: 0;
+  width: 266px;
+  position: absolute;
+  z-index: 2;
+}
+
+a:link {
+  color: rgb(63, 110, 194);
+}
+
+a:active {
+  color: rgb(37, 64, 113);
+}
+
+#navbar-container > ul {
+  -webkit-user-select: none;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-item {
+  border-bottom: 1px solid transparent;
+  border-top: 1px solid transparent;
+  color: #426dc9;
+  cursor: pointer;
+  display: block;
+  font-size: 105%;
+  outline: none;
+  padding: 7px 0;
+  text-align: end;
+  text-shadow: white 0 1px 1px;
+  -webkit-padding-end: 24px;
+}
+
+.navbar-item-selected {
+  -webkit-box-shadow: 0px 1px 0px #f7f7f7;
+  background: -webkit-linear-gradient(left, #bbcee9, #bbcee9 97%, #aabedc);
+  border-bottom: 1px solid #8faad9;
+  border-top: 1px solid #8faad9;
+  color: black;
+  text-shadow: #bbcee9 0 1px 1px;
+}
+
+.section-title {
+  -webkit-padding-end: 24px;
+  -webkit-user-select: none;
+  border-bottom: 1px solid #EEE;
+  color: #53637D;
+  font-size: 200%;
+  font-weight: normal;
+  margin: 0;
+  padding-bottom: 4px;
+  padding-top: 13px;
+  text-shadow: white 0 1px 2px;
+}
+
+.section {
+  border-bottom: 1px solid #EEE;
+  margin-top: 17px;
+  padding-bottom: 20px;
+  line-height: 150%
+}
+
+.section:last-child {
+  border-bottom: none;
+}
+
+.section > h3 {
+  font-size: 105%;
+  font-weight: bold;
+  margin: 0;
+  vertical-align: middle;
+  width: 140px;
+}
+
+.text-link {
+  color: #5a75ce;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.text-link:hover {
+  text-decoration: underline;
+}

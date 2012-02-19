@@ -1,0 +1,65 @@
+/* hbox and vbox classes */
+
+.hbox {
+  display: -webkit-box;
+  -webkit-box-orient: horizontal;
+  -webkit-box-align: stretch;
+}
+
+.hbox > * {
+  -webkit-box-flex: 0;
+  display: block;
+}
+
+.hbox > .hbox,
+.hbox > .vbox {
+  display: -webkit-box;
+}
+
+.vbox {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-box-align: stretch;
+}
+
+.vbox > * {
+  -webkit-box-flex: 0;
+  display: block;
+}
+
+.vbox > .hbox,
+.vbox > .vbox {
+  display: -webkit-box;
+}
+
+.spacer {
+  -webkit-box-flex: 1;
+}
+
+.reverse {
+  -webkit-box-direction: reverse;
+}
+
+.boxFlex {
+  -webkit-box-flex: 1;
+}
+
+.boxGroup1 {
+  -webkit-box-flex-group: 1;
+}
+
+.boxGroup2 {
+  -webkit-box-flex-group: 2;
+}
+
+.start {
+  -webkit-box-pack: start;
+}
+
+.end {
+  -webkit-box-pack: end;
+}
+
+.center {
+  -webkit-box-pack: center;
+}

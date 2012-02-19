@@ -1,0 +1,11 @@
+1.修改插件信息：
+plugin_factory.cc
+dll_entry.cc
+npp_entry.cc
+
+2.添加输出函数
+download_helper_plugin.cc
+npn_entry.cc
+plugin_factory.cc
+download_helper_script_object.cc
+script_object_factory.cc
