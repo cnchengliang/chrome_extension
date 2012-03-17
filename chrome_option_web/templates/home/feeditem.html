@@ -1,0 +1,16 @@
+
+							<% _.each(feeds, function(feed){ %>
+								  <tr id="tr_<%=feed.id%>">
+								    	<td><%=feed.id%></td>
+								    	<td><%=feed.content%></td>
+								    	<td><a target="_blank" href="<%=feed.from_url%>"><%=feed.from_url%></a></td>
+								    	<td><%=feed.cdate%></td>
+								    	<td>
+								    	<label class="radio"><input type="radio" checked="true" value="1" name="action_<%=feed.id%>" />飘过
+								    	</label>
+								    	<label class="radio"><input type="radio" value="2" name="action_<%=feed.id%>" />给力
+								    	</label>
+								    	</td>
+								  </tr>
+						   <%  }); %>
+

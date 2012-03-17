@@ -34,5 +34,5 @@
 		templates: '../templates'
 	},
 	name: "main",
-	out: "../../main-built.js"
+	out: "../../options.js"
 })

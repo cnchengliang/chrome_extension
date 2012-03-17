@@ -1,0 +1,128 @@
+
+    	<div class="container_12 leading">
+		<section class="portlet">
+			<header>
+				<h2>设置参数</h2>
+			</header>
+			<section>
+		    		<form id="sc_form" class="form-horizontal">
+		    			<fieldset>
+						<legend>公共参数</legend>
+						<div class="row-fluid">
+							<div class="control-group span6">
+								<label class="control-label" for="continue_enable">开启</label>
+								<div class="controls">
+									<label class="checkbox">
+									<input type="checkbox" id="continue_enable" name="continue_enable" value="1" <% options.continue_enable==1?print('checked="true"'):0; %> />是否继续启用当前所有配置
+									</label>
+								</div>
+							</div>
+							<div class="control-group span6">
+								<label class="control-label" for="auto_get_content">手动采集页面数据</label>
+								<div class="controls">
+									<label class="checkbox">
+									<input type="checkbox" id="auto_get_content" name="auto_get_content" value="1" <% options.auto_get_content==1?print('checked="true"'):0; %> />是否启用手动输入xpath来采集数据
+									</label>
+								</div>
+							</div>
+						</div>
+						<div class="row-fluid">
+							<div class="control-group span12">
+								<label class="control-label" for="tabs_route">页面标签选择</label>
+								<div class="controls">
+									<select id="tabs_route" name="tabs_route">
+										<option selected="selected">download_twitter_tabs</option>
+										<option>download_oschina_tabs</option>
+									</select>
+									<input type="text" id="tab_filter_url" name="tab_filter_url" value="" />
+									<a id="get_tabs" class="btn btn-success" href="javascript:void(0);">查询</a>
+									<a id="get_tabs2" class="btn btn-success" href="javascript:void(0);">打开</a>
+									<span class="help-inline" id="tabs"></span>
+								</div>
+							</div>							
+						</div>
+						<div class="row-fluid">
+							<div class="control-group span12">
+								<label class="control-label" for="ports_route">数据端口选择</label>
+								<div class="controls">
+									<select id="ports_route" name="ports_route">
+										<option>download_twitter_ports</option>
+										<option>download_oschina_ports</option>
+									</select>
+									<input type="text" id="ports_zmq" name="ports_zmq" value="5500,5501" />
+									<a id="get_ports" class="btn btn-success" href="javascript:void(0);">设置</a>		
+								</div>
+							</div>							
+						</div>
+						<div class="row-fluid">
+							<div class="control-group span12">
+								<label class="control-label" for="cdate_route">设置时间</label>
+								<div class="controls">
+									<select id="cdate_route" name="cdate_route">
+										<option>download_twitter_cdate</option>
+										<option>download_oschina_cdate</option>
+									</select>
+									<input type="text" id="cdate" name="cdate" value="2012/03/01" />
+									<a id="get_cdate" class="btn btn-success" href="javascript:void(0);">设置</a>		
+								</div>
+							</div>							
+						</div>
+
+
+					</fieldset>
+					<fieldset>
+						<legend>个性参数</legend>
+						<div class="row-fluid">
+							<table class="table table-bordered">
+								<thead>
+									  <tr>
+									  	<th>#</th>
+									  	<th>操作名称</th>
+									    	<th>是否开启</th>
+									    	<th>备注</th>
+									  </tr>
+								</thead>
+								<tbody>
+									  <tr>
+									    	<td rowspan="2">微博</td>
+									    	<td>新浪个人微博</td>
+									    	<td><input type="checkbox" id="download_twitter_enable" name="download_twitter_enable" value="1" <% options.download_twitter_enable==1?print('checked="true"'):0; %> /></td>
+									    	<td><span id="download_twitter_tabs_url">http://weibo.com/</span></td>
+									  </tr>
+									  <tr>
+									    	<td>新浪企业微博</td>
+									    	<td></td>
+									    	<td>http://weibo.com/</td>
+									  </tr>
+									  <tr>
+									    	<td>开源中国</td>
+									    	<td>最新资讯</td>
+									    	<td><input type="checkbox" id="download_oschina_enable" name="download_oschina_enable" value="1" <% options.download_oschina_enable==1?print('checked="true"'):0; %> /></td>
+									    	<td><span id="download_oschina_tabs_url">http://www.oschina.net/news/list<span></td>
+									  </tr>
+
+								</tbody>
+							</table>
+						</div>
+					</fieldset>
+				</form>
+				<form class="form-horizontal">
+					<fieldset>
+						<legend>其他</legend>
+						<div class="row-fluid">
+							<div class="control-group span12">
+								<label class="control-label" for="cookies_url">导出指定Cookies</label>
+								<div class="controls">
+									<input type="text" id="cookies_url" name="cookies_url" value="" />
+									<a id="get_cookies" class="btn btn-success" href="javascript:void(0);">导出</a>
+								</div>
+							</div>	
+						</div>
+					</fieldset>
+				</form>
+
+			</section>
+		</section>
+	</div>
+
+

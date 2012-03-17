@@ -8,7 +8,7 @@ define([
         },
         initialize: function () {},
 		getOption: function(callback){
-			if(typeof chrome.extension == "undefined")
+			if(typeof chrome == "undefined")
 			{
 				var options = {
 					'auto_get_content':true,
@@ -21,7 +21,8 @@ define([
 			{
 				chrome.extension.sendRequest({type:'option',key:'keys'}, 
 					function(response) {
-						callback(response.result);
+						if(parseInt(response.result.continue_enable))
+							callback(response.result);
 					}
 				);
 			}	
