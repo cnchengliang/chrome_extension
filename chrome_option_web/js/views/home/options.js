@@ -39,6 +39,53 @@ define([
 			$('#get_cookies').bind('click', function() {
 				_this.getCookies();
 			});
+
+			$('#get_cookies').bind('click', function() {
+				_this.getCookies();
+			});
+			$('#clear_temp_data').bind('click', function(){
+				if(typeof chrome != "undefined")
+				{
+					chrome.extension.sendRequest({
+						type:'set_temp_data',
+						temp_data:[]
+						},
+						function(response) {
+							console.log(response.result);
+							/*
+							chrome.extension.sendRequest({
+								type:'get_temp_data'},
+								function(response) {
+									document.getElementById('byte_content').innerHTML = response.result.join('<br />');
+							});*/
+					});
+					chrome.extension.sendRequest({
+							type:'set_temp_flag',
+							temp_flag:'0'
+						},
+						function(response) {
+							console.log(response.result);
+					});	
+				}
+			});
+			$('#show_temp_data').bind('click', function(){
+				if(typeof chrome != "undefined")
+				{
+					chrome.extension.sendRequest({
+							type:'get_temp_data'
+						},
+						function(response) {
+							console.log('temp_data:'+response.result.length);
+							console.log(response.result);
+					});
+					chrome.extension.sendRequest({
+							type:'get_temp_flag'
+						},
+						function(response) {
+							console.log('temp_flag:'+response.result);
+					});
+				}
+			});
         },
         setTabs: function()
 		{

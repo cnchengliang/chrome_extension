@@ -33,10 +33,10 @@ function test() {
     console.log("function.common.js");
 }
 
-function waitFor(testFx, test_args, onReady, ready_args, timeOutMillis, timeCheckMillis) {
+function waitFor(testFx, test_args, onReady, ready_args, timeOutMillis, timeCheckMillis, timeOutFx) {
     var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 1e4, timeCheckMillis = timeCheckMillis ? timeCheckMillis : 100, start = (new Date).getTime(), condition = !1, interval = null;
     interval = setInterval(function() {
-        (new Date).getTime() - start < maxtimeOutMillis && !condition ? condition = typeof testFx == "string" ? eval(testFx) : testFx(test_args) != "null" : (condition ? typeof onReady == "string" ? eval(onReady) : onReady(ready_args) : console.log("waitfor_timeout"), clearInterval(interval), interval = null);
+        (new Date).getTime() - start < maxtimeOutMillis && !condition ? condition = typeof testFx == "string" ? eval(testFx) : testFx(test_args) != "null" : (condition ? typeof onReady == "string" ? eval(onReady) : onReady(ready_args) : (typeof timeOutFx != "undefined" && timeOutFx(), console.log("waitfor_timeout")), clearInterval(interval), interval = null);
     }, timeCheckMillis);
 }
 
@@ -4278,16 +4278,66 @@ function injectJavaScriptResource(a) {
             scroll_tags: [],
             cur_tag: 0,
             page: 1,
-            jump_flag: !0
+            jump_flag: !0,
+            fn: function() {}
         },
         initialize: function() {},
         setOptions: function(b) {
             this.opts = a.extend({}, this.opts, b);
         },
+        getMyContent: function() {
+            _this = this, chrome.extension.sendRequest({
+                type: "get_temp_flag"
+            }, function(a) {
+                parseInt(a.result) != 1 ? _this._getRelation() : (_this.fn = function() {
+                    chrome.extension.sendRequest({
+                        type: "pop_temp_data"
+                    }, function(a) {
+                        a.result != "" ? location.href = "http://weibo.com/" + a.result : console.log("finished");
+                    });
+                }, _this.getContent());
+            });
+        },
+        _getRelation: function() {
+            _this = this;
+            var a = parseInt(getParam("page"));
+            isNaN(a) ? a = 2 : a += 1;
+            var b = "//ul[@class='cnfList']/li", c = [ "userid" ], d = [ "/div[2]/div[2]/p[1]/a" ], e = [ "usercard" ], f = getRows([ b, d, e ]), g = [];
+            for (var h = 0, i = f.length; h < i; h++) for (var j = 0, k = c.length; j < k; j++) {
+                if (c[j] == "userid") {
+                    var l = f[h][j].replace("id=", "");
+                    f[h][j] = parseInt(l);
+                }
+                g[g.length] = f[h][j];
+            }
+            g.length > 0 ? typeof chrome == "undefined" ? (str = JSON.stringify(f), console.log(str)) : chrome.extension.sendRequest({
+                type: "append_temp_data",
+                temp_data: g
+            }, function(a) {
+                console.log(a.result), _this._relation_jump_page();
+            }) : chrome.extension.sendRequest({
+                type: "set_temp_flag",
+                temp_flag: "1"
+            }, function(a) {
+                _this.getMyContent();
+            });
+        },
+        _relation_jump_page: function() {
+            var a = getNodeDetail([ "//div[@id='pl_relation_follow']/div[@class='W_pages W_pages_comment']/a[position()>1][contains(@class,'W_btn_a')]", "", "", "" ]);
+            if (a != "null") {
+                var b = document.createEvent("MouseEvents");
+                b.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a.dispatchEvent(b);
+            } else chrome.extension.sendRequest({
+                type: "set_temp_flag",
+                temp_flag: "1"
+            }, function(a) {
+                this.getMyContent();
+            });
+        },
         _getPersonContent: function(a) {
             var b = "//div[@id='pl_content_hisFeed']/div[@class='feed_lists']/dl", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "", "/dd[1][@class='content']/dl[1]/dt/em", "/dd[@class='content']/p[1]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[2]", "/dd[@class='content']/p[2]/span/a[1]", "/dd[@class='content']/p[2]/span/a[3]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/span/a[1]" ], e = [ "mid", "textContent", "textContent", "title", "href", "textContent", "textContent", "textContent", "href", "action-data" ], f = getRows([ b, d, e ]), g = "", h = "", i = [];
             for (var j = 0, k = f.length; j < k; j++) {
-                i[j] = new Object;
+                i[i.length] = new Object;
                 for (var l = 0, m = c.length; l < m; l++) {
                     if (c[l] == "userid") {
                         var n = f[j][l].replace("http://weibo.com/", "");
@@ -4295,17 +4345,23 @@ function injectJavaScriptResource(a) {
                     } else if (c[l] == "username") {
                         var o = "[\\&]name=([^&#]*)", p = new RegExp(o), q = p.exec(f[j][l]);
                         q != null && (f[j][l] = unescape(q[1]));
+                    } else if (c[l] == "cdate") {
+                        var r = Date.parse(f[j][l].replace(/\./g, "/")), s = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
+                        if (!isNaN(r) && !isNaN(s) && r < s) {
+                            l = c.length, i.pop();
+                            break;
+                        }
                     }
-                    i[j][c[l]] = f[j][l];
+                    i[i.length - 1][c[l]] = f[j][l];
                 }
             }
-            f.length > 0 && (typeof chrome.extension == "undefined" ? (h = JSON.stringify(f), console.log(h)) : chrome.extension.sendRequest({
+            i.length > 0 ? (typeof chrome.extension == "undefined" ? (h = JSON.stringify(i), console.log(h)) : chrome.extension.sendRequest({
                 type: "push2Client",
                 data: i,
                 port: _this.opts.port
             }, function(a) {
                 console.log(a.result);
-            }), location.href = "http://weibo.com/" + g + "?is_search=0&visible=0&is_tag=0&page=" + a);
+            }), location.href = "http://weibo.com/" + g + "?is_search=0&visible=0&is_tag=0&page=" + a) : _this.fn();
         },
         is_person_bottom_page: function(a) {
             var b = "//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_loading']", c = getNodeDetail([ b, "", "", "" ]);
@@ -4316,10 +4372,19 @@ function injectJavaScriptResource(a) {
         _getCompanyContent: function() {
             var b = "//ul[@id='feed_list']/li", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[3]/p[@class='source']", "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[1]/cite/a/strong", "/div[@class='MIB_feed_c']/div/div[1]/cite[1]/a", "/div[@class='MIB_feed_c']/div/div[1]/cite[2]/a", "/div[@class='MIB_feed_c']/div/div[2]/a[1]/strong[2]", "/div[@class='MIB_feed_c']/div/div[2]/a[3]/strong[2]", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a" ], e = [ "mid", "textContent", "textContent", "date", "href", "textContent", "textContent", "textContent", "lastforwarder", "lastforwardername" ], f = getRows([ b, d, e ]), g = "", h = "", i = [];
             for (var j = 0, k = f.length; j < k; j++) {
-                i[j] = {};
-                for (var l = 0, m = c.length; l < m; l++) i[j][c[l]] = f[j][l];
+                i[i.length] = {};
+                for (var l = 0, m = c.length; l < m; l++) {
+                    if (c[l] == "cdate") {
+                        var n = Date.parse(f[j][l].replace(/\./g, "/")), o = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
+                        if (!isNaN(n) && !isNaN(o) && n < o) {
+                            l = c.length, i.pop();
+                            break;
+                        }
+                    }
+                    i[i.length - 1][c[l]] = f[j][l];
+                }
             }
-            f.length > 0 && (typeof chrome.extension == "undefined" ? (h = JSON.stringify(f), console.log(h)) : chrome.extension.sendRequest({
+            i.length > 0 ? typeof chrome.extension == "undefined" ? (h = JSON.stringify(f), console.log(h)) : chrome.extension.sendRequest({
                 type: "push2Client",
                 data: i,
                 port: _this.opts.port
@@ -4329,7 +4394,7 @@ function injectJavaScriptResource(a) {
                     var d = document.createEvent("MouseEvents");
                     d.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a("#feed_list").html(""), c.dispatchEvent(d), _this.getContent();
                 }
-            }));
+            }) : _this.fn();
         },
         is_company_bottom_page: function(a) {
             var b = _this.opts.scroll_tags, c = _this.opts.cur_tag, d = "", e = "null";
@@ -4352,13 +4417,13 @@ function injectJavaScriptResource(a) {
             _this = this;
             if (getNodeDetail([ "//div[@id='pl_content_hisFeed']", "", "", "" ]) != "null") {
                 var a = parseInt(getParam("page"));
-                isNaN(a) ? a = 1 : a += 1, window.scrollTo(0, document.body.scrollTop), waitFor(_this.is_person_bottom_page, [ "//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_pages W_pages_comment']", "", "", "" ], _this._getPersonContent, a, 3e4);
+                isNaN(a) ? a = 2 : a += 1, window.scrollTo(0, document.body.scrollTop), waitFor(_this.is_person_bottom_page, [ "//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_pages W_pages_comment']", "", "", "" ], _this._getPersonContent, a, 3e4, 100, _this.fn);
             } else {
                 var b = "http://a.weibo.com/profile.php?uid=";
                 if (getNodeDetail([ "//div[@id='loading']", "", "", "" ]) != "null" && location.href.indexOf(b) == -1) {
                     var c = location.href.replace("http://weibo.com/", "");
                     location.href = b + c;
-                } else window.scrollTo(0, document.body.scrollTop), _this.opts.scroll_tags = getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ]), _this.opts.cur_tag = 0, waitFor(_this.is_company_bottom_page, [ "//div[@class='MIB_bobar']", "", "", "" ], _this._getCompanyContent, "", 3e4, 500);
+                } else window.scrollTo(0, document.body.scrollTop), _this.opts.scroll_tags = getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ]), _this.opts.cur_tag = 0, waitFor(_this.is_company_bottom_page, [ "//div[@class='MIB_bobar']", "", "", "" ], _this._getCompanyContent, "", 3e4, 500, _this.fn);
             }
         },
         render: function() {
@@ -4423,6 +4488,16 @@ function injectJavaScriptResource(a) {
                 f.setOptions({
                     port: parseInt(c[h])
                 }), f.getContent();
+                break;
+            }
+        }
+        if (parseInt(a.go2simple_weibo_enable)) {
+            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, i = a.go2simple_weibo_cdate;
+            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+                f.setOptions({
+                    port: parseInt(c[h]),
+                    cdate: i
+                }), f.getMyContent();
                 break;
             }
         }

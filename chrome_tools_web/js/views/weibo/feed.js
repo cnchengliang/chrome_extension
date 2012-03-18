@@ -12,13 +12,132 @@ define([
         	scroll_tags:[],
         	cur_tag:0,
 		    page: 1,
-		    jump_flag:true
+		    jump_flag:true,
+		    fn:function(){}
         },
         initialize: function () {
 
         },
         setOptions: function (cfg) {
         	this.opts = $.extend({}, this.opts, cfg);
+        },
+        getMyContent: function()
+        {
+        	_this = this;
+        	chrome.extension.sendRequest({
+					type:'get_temp_flag'
+				},
+				function(response) {
+					if(parseInt(response.result) != 1)
+						_this._getRelation();
+					else
+					{
+						_this.fn = function(){
+							chrome.extension.sendRequest({
+									type:'pop_temp_data'
+								},
+								function(response) {
+									if(response.result != '')
+										location.href = 'http://weibo.com/'+response.result;
+									else
+										console.log("finished");
+							});
+						}
+						_this.getContent();
+					}
+			});
+        	//this._getRelation();
+        	//this.getContent();
+        },
+        _getRelation: function()
+        {
+        	_this = this;
+        	var page = parseInt(getParam("page"));
+			if(!isNaN(page))
+				page += 1;
+			else
+				page = 2;
+        	var row_xpath = "//ul[@class='cnfList']/li";
+        	var cols_name = ["userid"];
+			var cols = ["/div[2]/div[2]/p[1]/a"];
+			var attr = ["usercard"];
+			//nodes
+			var rows = getRows([row_xpath,cols,attr]);
+			var rows_object = [];
+			for (var i=0, len=rows.length; i < len; i++) {
+				for(var j=0, m=cols_name.length; j<m;j++)
+				{
+					if(cols_name[j] == 'userid')
+					{
+						var tmp = rows[i][j].replace("id=","");
+						rows[i][j] = parseInt(tmp);
+					}
+					rows_object[rows_object.length] = rows[i][j];
+				}
+			}
+			if(rows_object.length > 0)
+			{				
+				if(typeof chrome == "undefined")
+				{
+					str = JSON.stringify(rows);
+					console.log(str);
+				}else
+				{
+					chrome.extension.sendRequest({
+							type:'append_temp_data',
+							temp_data:rows_object
+							},
+							function(response) {
+								console.log(response.result);
+								//userid = getParam2("weibo.com");
+								//location.href = "http://weibo.com/"+userid+"/follow?t=1&page="+page;
+								_this._relation_jump_page();
+					});
+				}
+				
+			}else
+			{
+				chrome.extension.sendRequest({
+						type:'set_temp_flag',
+						temp_flag:'1'
+					},
+					function(response) {
+						_this.getMyContent();
+				});				
+			}
+        },
+        _relation_jump_page: function()
+        {
+        	var el = getNodeDetail(["//div[@id='pl_relation_follow']/div[@class='W_pages W_pages_comment']/a[position()>1][contains(@class,'W_btn_a')]",'','','']);
+			if(el != 'null')
+			{
+				var ev = document.createEvent('MouseEvents');
+				ev.initMouseEvent('click', // type
+								  false, // canBubble
+								  false, // cancelable
+								  window, // view
+								  1, // detail (number of clicks)
+								  0, // screenX
+								  0, // screenY
+								  0, // clientX
+								  0, // clientY
+								  false, // ctrlKey
+								  false, // altKey
+								  false, // shiftKey
+								  false, // metaKey
+								  0, // button
+								  null); // relatedTarget
+				el.dispatchEvent(ev);
+			}else
+			{
+				chrome.extension.sendRequest({
+						type:'set_temp_flag',
+						temp_flag:'1'
+					},
+					function(response) {
+						this.getMyContent();
+				});	
+			}
         },
         _getPersonContent: function(page)
         {
@@ -32,7 +151,7 @@ define([
 			var str = '';
 			var rows_object = [];
 			for (var i=0, len=rows.length; i < len; i++) {
-				rows_object[i] = new Object();
+				rows_object[rows_object.length] = new Object();
 				for(var j=0, m=cols_name.length; j<m;j++)
 				{
 					if(cols_name[j] == 'userid')
@@ -48,15 +167,25 @@ define([
 						if( results != null ) {
 							rows[i][j] = unescape(results[1]);
 						}
+					}else if(cols_name[j] == 'cdate')
+					{
+						var time_stamp1 = Date.parse(rows[i][j].replace(/\./g,"/"));
+						var time_stamp2 = Date.parse(_this.opts.cdate.replace(/\./g,"/"));
+						if(!isNaN(time_stamp1) && !isNaN(time_stamp2) && time_stamp1 < time_stamp2)
+						{
+							j = cols_name.length;
+							rows_object.pop();
+							break;
+						}
 					}
-					rows_object[i][cols_name[j]] = rows[i][j];
-				}				
+					rows_object[rows_object.length-1][cols_name[j]] = rows[i][j];
+				}
 			}
-			if(rows.length > 0)
+			if(rows_object.length > 0)
 			{				
 				if(typeof chrome.extension == "undefined")
 				{
-					str = JSON.stringify(rows);
+					str = JSON.stringify(rows_object);
 					console.log(str);
 				}else
 				{
@@ -72,6 +201,9 @@ define([
 					);
 				}
 				location.href = "http://weibo.com/"+userid+"?is_search=0&visible=0&is_tag=0&page="+page;
+			}else
+			{
+				_this.fn();
 			}
 //postid,parentid,ori_content,content,userid,username,cdate,from_url,from_custom,retwitter_num,comment_num,state
 
@@ -97,13 +229,24 @@ define([
 			var str = '';
 			var rows_object = [];
 			for (var i=0, len=rows.length; i < len; i++) {
-				rows_object[i] = {};
+				rows_object[rows_object.length] = {};
 				for(var j=0, m=cols_name.length; j<m;j++)
 				{
-					rows_object[i][cols_name[j]] = rows[i][j];
+					if(cols_name[j] == 'cdate')
+					{
+						var time_stamp1 = Date.parse(rows[i][j].replace(/\./g,"/"));
+						var time_stamp2 = Date.parse(_this.opts.cdate.replace(/\./g,"/"));
+						if(!isNaN(time_stamp1) && !isNaN(time_stamp2) && time_stamp1 < time_stamp2)
+						{
+							j = cols_name.length;
+							rows_object.pop();
+							break;
+						}
+					}
+					rows_object[rows_object.length-1][cols_name[j]] = rows[i][j];
 				}				
 			}
-			if(rows.length > 0)
+			if(rows_object.length > 0)
 			{				
 				if(typeof chrome.extension == "undefined")
 				{
@@ -147,6 +290,9 @@ define([
 						}
 					);
 				}
+			}else
+			{
+				_this.fn();
 			}
 //postid,parentid,ori_content,content,userid,username,cdate,from_url,from_custom,retwitter_num,comment_num,state
 
@@ -217,9 +363,9 @@ define([
 				if(!isNaN(page))
 					page += 1;
 				else
-					page = 1;
+					page = 2;
 				window.scrollTo(0,document.body.scrollTop);
-				waitFor(_this.is_person_bottom_page,["//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_pages W_pages_comment']","","",""],_this._getPersonContent,page,30000);
+				waitFor(_this.is_person_bottom_page,["//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_pages W_pages_comment']","","",""],_this._getPersonContent,page,30000,100,_this.fn);
 			}else
 			{
 				var tmp_url = "http://a.weibo.com/profile.php?uid=";
@@ -229,10 +375,10 @@ define([
 					location.href = tmp_url + tmp;
 				}else
 				{
-					window.scrollTo(0,document.body.scrollTop);					
+					window.scrollTo(0,document.body.scrollTop);
 					_this.opts.scroll_tags = getRows(["//ul[@id='feed_list']/li",["/div[@class='MIB_feed_c']/p[@class='sms']"],["mid"]]);
 					_this.opts.cur_tag = 0;
-					waitFor(_this.is_company_bottom_page,["//div[@class='MIB_bobar']","","",""],_this._getCompanyContent,"",30000,500);
+					waitFor(_this.is_company_bottom_page,["//div[@class='MIB_bobar']","","",""],_this._getCompanyContent,"",30000,500,_this.fn);
 				}
 			}
 		},

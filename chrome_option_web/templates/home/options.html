@@ -33,6 +33,7 @@
 									<select id="tabs_route" name="tabs_route">
 										<option selected="selected">download_twitter_tabs</option>
 										<option>download_oschina_tabs</option>
+										<option>go2simple_weibo_tabs</option>
 									</select>
 									<input type="text" id="tab_filter_url" name="tab_filter_url" value="" />
 									<a id="get_tabs" class="btn btn-success" href="javascript:void(0);">查询</a>
@@ -48,6 +49,7 @@
 									<select id="ports_route" name="ports_route">
 										<option>download_twitter_ports</option>
 										<option>download_oschina_ports</option>
+										<option>go2simple_weibo_ports</option>
 									</select>
 									<input type="text" id="ports_zmq" name="ports_zmq" value="5500,5501" />
 									<a id="get_ports" class="btn btn-success" href="javascript:void(0);">设置</a>		
@@ -61,6 +63,7 @@
 									<select id="cdate_route" name="cdate_route">
 										<option>download_twitter_cdate</option>
 										<option>download_oschina_cdate</option>
+										<option>go2simple_weibo_cdate</option>
 									</select>
 									<input type="text" id="cdate" name="cdate" value="2012/03/01" />
 									<a id="get_cdate" class="btn btn-success" href="javascript:void(0);">设置</a>		
@@ -84,7 +87,7 @@
 								</thead>
 								<tbody>
 									  <tr>
-									    	<td rowspan="2">微博</td>
+									    	<td rowspan="3">微博</td>
 									    	<td>新浪个人微博</td>
 									    	<td><input type="checkbox" id="download_twitter_enable" name="download_twitter_enable" value="1" <% options.download_twitter_enable==1?print('checked="true"'):0; %> /></td>
 									    	<td><span id="download_twitter_tabs_url">http://weibo.com/</span></td>
@@ -93,6 +96,11 @@
 									    	<td>新浪企业微博</td>
 									    	<td></td>
 									    	<td>http://weibo.com/</td>
+									  </tr>
+									  <tr>
+									    	<td>go2simple新浪微博</td>
+									    	<td><input type="checkbox" id="go2simple_weibo_enable" name="go2simple_weibo_enable" value="1" <% options.go2simple_weibo_enable==1?print('checked="true"'):0; %> /></td>
+									    	<td><span id="go2simple_weibo_tabs_url">http://weibo.com/1826787742/follow</span></td>
 									  </tr>
 									  <tr>
 									    	<td>开源中国</td>
@@ -116,7 +124,14 @@
 									<input type="text" id="cookies_url" name="cookies_url" value="" />
 									<a id="get_cookies" class="btn btn-success" href="javascript:void(0);">导出</a>
 								</div>
-							</div>	
+							</div>
+							<div class="control-group span12">
+								<label class="control-label" for="cookies_url">清空或显示临时数据</label>
+								<div class="controls">
+									<a id="clear_temp_data" class="btn btn-success" href="javascript:void(0);">清空</a>
+									<a id="show_temp_data" class="btn btn-success" href="javascript:void(0);">显示</a>
+								</div>
+							</div>
 						</div>
 					</fieldset>
 				</form>

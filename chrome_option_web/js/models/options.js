@@ -6,14 +6,18 @@ define([
     	defaults:{
 		    continue_enable: '0',
 		    auto_get_content: '0',
-		    download_twitter_enable: '0',
-		    download_oschina_enable: '0',
+		    download_twitter_enable: '0',		    
 		    download_twitter_tabs: '',
-		    download_oschina_tabs: '',
 		    download_twitter_ports: '',
-		    download_oschina_ports: '',
 		    download_twitter_cdate: '',
-		    download_oschina_cdate: ''
+		    download_oschina_enable: '0',
+		    download_oschina_tabs: '',		    
+		    download_oschina_ports: '',		    
+		    download_oschina_cdate: '',
+		    go2simple_weibo_enable: '0',
+		    go2simple_weibo_tabs: '',		    
+		    go2simple_weibo_ports: '',		    
+		    go2simple_weibo_cdate: ''
         },
         store: function(key,val){
         	var options = {};
@@ -27,7 +31,7 @@ define([
 				console.log(JSON.stringify(options));
         },
         initialize: function () {
-        	var options = {'continue_enable':1,'auto_get_content':'1','download_twitter_enable':'1','download_oschina_enable':'1'};
+        	var options = {'continue_enable':1,'auto_get_content':'1','download_twitter_enable':'1','download_oschina_enable':'1','go2simple_weibo_enable':'1'};
 			if(localStorage['options'])
 				options = JSON.parse(localStorage['options']) || {};
 			for(var p in options){

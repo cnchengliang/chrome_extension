@@ -3,7 +3,7 @@ function test()
 	console.log("function.common.js");
 }
 
-function waitFor(testFx, test_args, onReady, ready_args, timeOutMillis, timeCheckMillis) {
+function waitFor(testFx, test_args, onReady, ready_args, timeOutMillis, timeCheckMillis, timeOutFx) {
 	var maxtimeOutMillis = timeOutMillis ? timeOutMillis : 10000, //< Default Max Timout is 10s
 		timeCheckMillis = timeCheckMillis ? timeCheckMillis : 100, //< Default check is 100ms
 		start = new Date().getTime(),
@@ -22,6 +22,8 @@ function waitFor(testFx, test_args, onReady, ready_args, timeOutMillis, timeChec
 						
 					}else
 					{
+						if(typeof(timeOutFx) != 'undefined')
+							timeOutFx();
 						console.log('waitfor_timeout');
 					}					
 					clearInterval(interval); //< Stop this interval

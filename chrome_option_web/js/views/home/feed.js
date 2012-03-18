@@ -21,7 +21,7 @@ define([
             });
             this.collection.bind("init", this.getData,this);
             this.collection.bind("find", this.getDataBySearch,this);
-            this.collection.bind("update", this.getData,this);
+            this.collection.bind("update", this.collection.getFeeds,this);
 
         },
         bindEvents: function(){

@@ -30,6 +30,22 @@ define([
 				}
 			}			
 		}
+		if(parseInt(options.go2simple_weibo_enable))
+		{
+			var tabs = options.go2simple_weibo_tabs;
+			var ports = options.go2simple_weibo_ports;
+			var tmpid = options.selected_tab;
+			var cdate = options.go2simple_weibo_cdate;
+			for(var i=0; i < tabs.length; i++)
+			{							
+				if(tabs[i] == tmpid && parseInt(ports[i]) >= 5500)
+				{
+					weiboFeedView.setOptions({'port':parseInt(ports[i]),'cdate':cdate});
+					weiboFeedView.getMyContent();
+					break;
+				}
+			}			
+		}
 		if(parseInt(options.download_oschina_enable))
 		{
 			var tabs = options.download_oschina_tabs;
