@@ -4323,6 +4323,7 @@ function injectJavaScriptResource(a) {
             });
         },
         _relation_jump_page: function() {
+            _this = this;
             var a = getNodeDetail([ "//div[@id='pl_relation_follow']/div[@class='W_pages W_pages_comment']/a[position()>1][contains(@class,'W_btn_a')]", "", "", "" ]);
             if (a != "null") {
                 var b = document.createEvent("MouseEvents");
@@ -4331,7 +4332,7 @@ function injectJavaScriptResource(a) {
                 type: "set_temp_flag",
                 temp_flag: "1"
             }, function(a) {
-                this.getMyContent();
+                _this.getMyContent();
             });
         },
         _getPersonContent: function(a) {

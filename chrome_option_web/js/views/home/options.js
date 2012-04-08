@@ -86,6 +86,20 @@ define([
 					});
 				}
 			});
+
+			$('#get_short_url').bind('click', function(){
+				$.ajax({
+				    url:'http://127.0.0.1/taobaoke/sinaurl.php',
+				    type: 'POST',
+				    data:{'url':$('#short_url').val()},
+				    dataType:"html",
+				    success:function (res) {
+				        $('#short_url_result').html(res);
+				    }
+				});
+				
+			});
+			
         },
         setTabs: function()
 		{
