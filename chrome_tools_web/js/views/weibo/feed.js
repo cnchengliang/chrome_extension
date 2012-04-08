@@ -198,11 +198,15 @@ define([
 												},
 												 
 												function(response) {
-													console.log(response.result)
+													console.log(response.result);
+													if(rows.length != rows_object.length)
+														_this.fn();
+													else
+														location.href = "http://weibo.com/"+userid+"?is_search=0&visible=0&is_tag=0&page="+page;
 												}
 					);
 				}
-				location.href = "http://weibo.com/"+userid+"?is_search=0&visible=0&is_tag=0&page="+page;
+				
 			}else
 			{
 				_this.fn();
@@ -287,7 +291,10 @@ define([
 												  null); // relatedTarget
 								$('#feed_list').html('');
 								el.dispatchEvent(ev);
-								_this.getContent();
+								if(rows.length != rows_object.length)
+									_this.fn();
+								else
+									_this.getContent();
 							}							
 						}
 					);

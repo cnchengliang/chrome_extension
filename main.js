@@ -4356,13 +4356,13 @@ function injectJavaScriptResource(a) {
                     i[i.length - 1][c[l]] = f[j][l];
                 }
             }
-            i.length > 0 ? (typeof chrome.extension == "undefined" ? (h = JSON.stringify(i), console.log(h)) : chrome.extension.sendRequest({
+            i.length > 0 ? typeof chrome.extension == "undefined" ? (h = JSON.stringify(i), console.log(h)) : chrome.extension.sendRequest({
                 type: "push2Client",
                 data: i,
                 port: _this.opts.port
-            }, function(a) {
-                console.log(a.result);
-            }), location.href = "http://weibo.com/" + g + "?is_search=0&visible=0&is_tag=0&page=" + a) : _this.fn();
+            }, function(b) {
+                console.log(b.result), f.length != i.length ? _this.fn() : location.href = "http://weibo.com/" + g + "?is_search=0&visible=0&is_tag=0&page=" + a;
+            }) : _this.fn();
         },
         is_person_bottom_page: function(a) {
             var b = "//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_loading']", c = getNodeDetail([ b, "", "", "" ]);
@@ -4393,7 +4393,7 @@ function injectJavaScriptResource(a) {
                 var c = getNodeDetail([ "//div[@id='epfeedlist']/div[@class='MIB_bobar']/div/a[position()>1][contains(@class,'btn_numWidth')]", "", "", "" ]);
                 if (c != "null") {
                     var d = document.createEvent("MouseEvents");
-                    d.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a("#feed_list").html(""), c.dispatchEvent(d), _this.getContent();
+                    d.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a("#feed_list").html(""), c.dispatchEvent(d), f.length != i.length ? _this.fn() : _this.getContent();
                 }
             }) : _this.fn();
         },
