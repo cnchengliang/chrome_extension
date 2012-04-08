@@ -54,17 +54,17 @@ function getNodeAttr(a) {
     return f;
 }
 
-function getRows(a) {
-    var b = a[0], c = a[1], d = a[2], e = [], f = document.evaluate(b, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-    if (f) for (var g = 1, h = f.snapshotLength; g <= h; g++) {
-        var i = [];
-        for (var j = 0, k = c.length; j < k; j++) {
-            var a = [ b, "[" + g + "]", strTrim(c[j], "g"), strTrim(d[j], "g") ], l = getNodeDetail(a);
-            typeof l == "undefined" || l == "null" ? i[i.length] = getNodeAttr(a) : i[i.length] = l, i[i.length - 1] = i[i.length - 1].replace(/[\r\t\n]/g, "");
+function getRows(a, b) {
+    var c = a[0], d = a[1], e = a[2], f = [], g = document.evaluate(c, document.documentElement, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    if (g) for (var h = 1, i = g.snapshotLength; h <= i; h++) {
+        var j = [];
+        for (var k = 0, l = d.length; k < l; k++) {
+            var a = [ c, "[" + h + "]", strTrim(d[k], "g"), strTrim(e[k], "g") ], m = getNodeDetail(a);
+            typeof m == "undefined" || m == "null" ? j[j.length] = getNodeAttr(a) : j[j.length] = m, j[j.length - 1] = j[j.length - 1].replace(/[\r\t\n]/g, "");
         }
-        e[e.length] = i, i = null;
+        f[f.length] = j, j = null;
     }
-    return e;
+    typeof b != "undefined" && b(f);
 }
 
 function getParam(a) {
@@ -4302,25 +4302,28 @@ function injectJavaScriptResource(a) {
             _this = this;
             var a = parseInt(getParam("page"));
             isNaN(a) ? a = 2 : a += 1;
-            var b = "//ul[@class='cnfList']/li", c = [ "userid" ], d = [ "/div[2]/div[2]/p[1]/a" ], e = [ "usercard" ], f = getRows([ b, d, e ]), g = [];
-            for (var h = 0, i = f.length; h < i; h++) for (var j = 0, k = c.length; j < k; j++) {
-                if (c[j] == "userid") {
-                    var l = f[h][j].replace("id=", "");
-                    f[h][j] = parseInt(l);
+            var b = "//ul[@class='cnfList']/li", c = [ "userid" ], d = [ "/div[2]/div[2]/p[1]/a" ], e = [ "usercard" ], f = function(a) {
+                var b = [];
+                for (var d = 0, e = a.length; d < e; d++) for (var f = 0, g = c.length; f < g; f++) {
+                    if (c[f] == "userid") {
+                        var h = a[d][f].replace("id=", "");
+                        a[d][f] = parseInt(h);
+                    }
+                    b[b.length] = a[d][f];
                 }
-                g[g.length] = f[h][j];
-            }
-            g.length > 0 ? typeof chrome == "undefined" ? (str = JSON.stringify(f), console.log(str)) : chrome.extension.sendRequest({
-                type: "append_temp_data",
-                temp_data: g
-            }, function(a) {
-                console.log(a.result), _this._relation_jump_page();
-            }) : chrome.extension.sendRequest({
-                type: "set_temp_flag",
-                temp_flag: "1"
-            }, function(a) {
-                _this.getMyContent();
-            });
+                b.length > 0 ? typeof chrome == "undefined" ? (str = JSON.stringify(a), console.log(str)) : chrome.extension.sendRequest({
+                    type: "append_temp_data",
+                    temp_data: b
+                }, function(a) {
+                    console.log(a.result), _this._relation_jump_page();
+                }) : chrome.extension.sendRequest({
+                    type: "set_temp_flag",
+                    temp_flag: "1"
+                }, function(a) {
+                    _this.getMyContent();
+                });
+            };
+            getRows([ b, d, e ], f);
         },
         _relation_jump_page: function() {
             _this = this;
@@ -4336,33 +4339,36 @@ function injectJavaScriptResource(a) {
             });
         },
         _getPersonContent: function(a) {
-            var b = "//div[@id='pl_content_hisFeed']/div[@class='feed_lists']/dl", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "", "/dd[1][@class='content']/dl[1]/dt/em", "/dd[@class='content']/p[1]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[2]", "/dd[@class='content']/p[2]/span/a[1]", "/dd[@class='content']/p[2]/span/a[3]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/span/a[1]" ], e = [ "mid", "textContent", "textContent", "title", "href", "textContent", "textContent", "textContent", "href", "action-data" ], f = getRows([ b, d, e ]), g = "", h = "", i = [];
-            for (var j = 0, k = f.length; j < k; j++) {
-                i[i.length] = new Object;
-                for (var l = 0, m = c.length; l < m; l++) {
-                    if (c[l] == "userid") {
-                        var n = f[j][l].replace("http://weibo.com/", "");
-                        f[j][l] = parseInt(n), g = f[j][l];
-                    } else if (c[l] == "username") {
-                        var o = "[\\&]name=([^&#]*)", p = new RegExp(o), q = p.exec(f[j][l]);
-                        q != null && (f[j][l] = unescape(q[1]));
-                    } else if (c[l] == "cdate") {
-                        var r = Date.parse(f[j][l].replace(/\./g, "/")), s = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
-                        if (!isNaN(r) && !isNaN(s) && r < s) {
-                            l = c.length, i.pop();
-                            break;
+            var b = "//div[@id='pl_content_hisFeed']/div[@class='feed_lists']/dl", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "", "/dd[1][@class='content']/dl[1]/dt/em", "/dd[@class='content']/p[1]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/a[2]", "/dd[@class='content']/p[2]/span/a[1]", "/dd[@class='content']/p[2]/span/a[3]", "/dd[@class='content']/p[2]/a[@class='date']", "/dd[@class='content']/p[2]/span/a[1]" ], e = [ "mid", "textContent", "textContent", "title", "href", "textContent", "textContent", "textContent", "href", "action-data" ], f = function(b) {
+                var d = "", e = "", f = [];
+                for (var g = 0, h = b.length; g < h; g++) {
+                    f[f.length] = new Object;
+                    for (var i = 0, j = c.length; i < j; i++) {
+                        if (c[i] == "userid") {
+                            var k = b[g][i].replace("http://weibo.com/", "");
+                            b[g][i] = parseInt(k), d = b[g][i];
+                        } else if (c[i] == "username") {
+                            var l = "[\\&]name=([^&#]*)", m = new RegExp(l), n = m.exec(b[g][i]);
+                            n != null && (b[g][i] = unescape(n[1]));
+                        } else if (c[i] == "cdate") {
+                            var o = Date.parse(b[g][i].replace(/\./g, "/")), p = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
+                            if (!isNaN(o) && !isNaN(p) && o < p) {
+                                i = c.length, f.pop();
+                                break;
+                            }
                         }
+                        f[f.length - 1][c[i]] = b[g][i];
                     }
-                    i[i.length - 1][c[l]] = f[j][l];
                 }
-            }
-            i.length > 0 ? typeof chrome.extension == "undefined" ? (h = JSON.stringify(i), console.log(h)) : chrome.extension.sendRequest({
-                type: "push2Client",
-                data: i,
-                port: _this.opts.port
-            }, function(b) {
-                console.log(b.result), f.length != i.length ? _this.fn() : location.href = "http://weibo.com/" + g + "?is_search=0&visible=0&is_tag=0&page=" + a;
-            }) : _this.fn();
+                f.length > 0 ? typeof chrome.extension == "undefined" ? (e = JSON.stringify(f), console.log(e)) : chrome.extension.sendRequest({
+                    type: "push2Client",
+                    data: f,
+                    port: _this.opts.port
+                }, function(c) {
+                    console.log(c.result), b.length != f.length ? _this.fn() : location.href = "http://weibo.com/" + d + "?is_search=0&visible=0&is_tag=0&page=" + a;
+                }) : _this.fn();
+            };
+            getRows([ b, d, e ], f);
         },
         is_person_bottom_page: function(a) {
             var b = "//div[@id='pl_content_hisFeed']/div[2]/div[@class='W_loading']", c = getNodeDetail([ b, "", "", "" ]);
@@ -4371,31 +4377,34 @@ function injectJavaScriptResource(a) {
             return d = getNodeDetail(a), d;
         },
         _getCompanyContent: function() {
-            var b = "//ul[@id='feed_list']/li", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[3]/p[@class='source']", "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[1]/cite/a/strong", "/div[@class='MIB_feed_c']/div/div[1]/cite[1]/a", "/div[@class='MIB_feed_c']/div/div[1]/cite[2]/a", "/div[@class='MIB_feed_c']/div/div[2]/a[1]/strong[2]", "/div[@class='MIB_feed_c']/div/div[2]/a[3]/strong[2]", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a" ], e = [ "mid", "textContent", "textContent", "date", "href", "textContent", "textContent", "textContent", "lastforwarder", "lastforwardername" ], f = getRows([ b, d, e ]), g = "", h = "", i = [];
-            for (var j = 0, k = f.length; j < k; j++) {
-                i[i.length] = {};
-                for (var l = 0, m = c.length; l < m; l++) {
-                    if (c[l] == "cdate") {
-                        var n = Date.parse(f[j][l].replace(/\./g, "/")), o = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
-                        if (!isNaN(n) && !isNaN(o) && n < o) {
-                            l = c.length, i.pop();
-                            break;
+            var b = "//ul[@id='feed_list']/li", c = [ "postid", "ori_content", "content", "cdate", "from_url", "from_custom", "retwitter_num", "comment_num", "userid", "username" ], d = [ "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[3]/p[@class='source']", "/div[@class='MIB_feed_c']/p[@class='sms']", "/div[@class='MIB_feed_c']/div/div[1]/cite/a/strong", "/div[@class='MIB_feed_c']/div/div[1]/cite[1]/a", "/div[@class='MIB_feed_c']/div/div[1]/cite[2]/a", "/div[@class='MIB_feed_c']/div/div[2]/a[1]/strong[2]", "/div[@class='MIB_feed_c']/div/div[2]/a[3]/strong[2]", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a", "/div[@class='MIB_feed_c']/div[contains(@class,'feed_att')]/div[2]/a" ], e = [ "mid", "textContent", "textContent", "date", "href", "textContent", "textContent", "textContent", "lastforwarder", "lastforwardername" ], f = function(b) {
+                var d = "", e = "", f = [];
+                for (var g = 0, h = b.length; g < h; g++) {
+                    f[f.length] = {};
+                    for (var i = 0, j = c.length; i < j; i++) {
+                        if (c[i] == "cdate") {
+                            var k = Date.parse(b[g][i].replace(/\./g, "/")), l = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
+                            if (!isNaN(k) && !isNaN(l) && k < l) {
+                                i = c.length, f.pop();
+                                break;
+                            }
                         }
+                        f[f.length - 1][c[i]] = b[g][i];
                     }
-                    i[i.length - 1][c[l]] = f[j][l];
                 }
-            }
-            i.length > 0 ? typeof chrome.extension == "undefined" ? (h = JSON.stringify(f), console.log(h)) : chrome.extension.sendRequest({
-                type: "push2Client",
-                data: i,
-                port: _this.opts.port
-            }, function(b) {
-                var c = getNodeDetail([ "//div[@id='epfeedlist']/div[@class='MIB_bobar']/div/a[position()>1][contains(@class,'btn_numWidth')]", "", "", "" ]);
-                if (c != "null") {
-                    var d = document.createEvent("MouseEvents");
-                    d.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a("#feed_list").html(""), c.dispatchEvent(d), f.length != i.length ? _this.fn() : _this.getContent();
-                }
-            }) : _this.fn();
+                f.length > 0 ? typeof chrome.extension == "undefined" ? (e = JSON.stringify(b), console.log(e)) : chrome.extension.sendRequest({
+                    type: "push2Client",
+                    data: f,
+                    port: _this.opts.port
+                }, function(c) {
+                    var d = getNodeDetail([ "//div[@id='epfeedlist']/div[@class='MIB_bobar']/div/a[position()>1][contains(@class,'btn_numWidth')]", "", "", "" ]);
+                    if (d != "null") {
+                        var e = document.createEvent("MouseEvents");
+                        e.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a("#feed_list").html(""), d.dispatchEvent(e), b.length != f.length ? _this.fn() : _this.getContent();
+                    }
+                }) : _this.fn();
+            };
+            getRows([ b, d, e ], f);
         },
         is_company_bottom_page: function(a) {
             var b = _this.opts.scroll_tags, c = _this.opts.cur_tag, d = "", e = "null";
@@ -4403,7 +4412,12 @@ function injectJavaScriptResource(a) {
                 d = "num_" + b[c];
                 var f = "//strong[@id='" + d + "']", g = getNodeDetail([ f, "", "", "" ]);
                 window.scrollTo(0, g.offsetTop), _this.opts.cur_tag++;
-            } else b.length == 0 ? _this.opts.scroll_tags = getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ]) : b.length != 0 && (e = "ok");
+            } else if (b.length == 0) {
+                var h = function(a) {
+                    _this.opts.scroll_tags = a;
+                };
+                getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ], h);
+            } else b.length != 0 && (e = "ok");
             return e;
         },
         _company_jump_page: function(b) {
@@ -4424,7 +4438,13 @@ function injectJavaScriptResource(a) {
                 if (getNodeDetail([ "//div[@id='loading']", "", "", "" ]) != "null" && location.href.indexOf(b) == -1) {
                     var c = location.href.replace("http://weibo.com/", "");
                     location.href = b + c;
-                } else window.scrollTo(0, document.body.scrollTop), _this.opts.scroll_tags = getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ]), _this.opts.cur_tag = 0, waitFor(_this.is_company_bottom_page, [ "//div[@class='MIB_bobar']", "", "", "" ], _this._getCompanyContent, "", 3e4, 500, _this.fn);
+                } else {
+                    window.scrollTo(0, document.body.scrollTop);
+                    var d = function(a) {
+                        _this.opts.scroll_tags = a, _this.opts.cur_tag = 0, waitFor(_this.is_company_bottom_page, [ "//div[@class='MIB_bobar']", "", "", "" ], _this._getCompanyContent, "", 3e4, 500, _this.fn);
+                    };
+                    getRows([ "//ul[@id='feed_list']/li", [ "/div[@class='MIB_feed_c']/p[@class='sms']" ], [ "mid" ] ], d);
+                }
             }
         },
         render: function() {
@@ -4449,29 +4469,32 @@ function injectJavaScriptResource(a) {
             this.opts = a.extend({}, this.opts, b);
         },
         _getContent: function(a) {
-            var b = "//div[@id='OSC_Content' and @class='CenterDiv']/table/tbody/tr/td[1][@class='left']/div[@class='HomeRecommArea']/div[@class='TABBODY']/div[2][@class='ArticleList']/ul[not(contains(@class, 'pager'))]/li", c = [ "content", "cdate", "from_url" ], d = [ "/table/tbody/tr/td/h3/a", "/table/tbody/tr/td[1]/p[1][@class='date']", "/table/tbody/tr/td/h3/a" ], e = [ "textContent", "textContent", "href" ], f = getRows([ b, d, e ]), g = "", h = "", i = [];
-            for (var j = 0, k = f.length; j < k; j++) {
-                i[i.length] = new Object;
-                for (var l = 0, m = c.length; l < m; l++) {
-                    if (c[l] == "cdate") {
-                        var n = /([\(])+(.*?)+([\)])/g, o = new RegExp(n), p = o.exec(f[j][l]);
-                        p != null && (f[j][l] = unescape(p[0].replace(new RegExp("([(|)])", "g"), "")));
-                        var q = Date.parse(f[j][l].replace(/\./g, "/")), r = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
-                        if (!isNaN(q) && !isNaN(r) && q < r) {
-                            l = c.length, i.pop();
-                            break;
+            var b = "//div[@id='OSC_Content' and @class='CenterDiv']/table/tbody/tr/td[1][@class='left']/div[@class='HomeRecommArea']/div[@class='TABBODY']/div[2][@class='ArticleList']/ul[not(contains(@class, 'pager'))]/li", c = [ "content", "cdate", "from_url" ], d = [ "/table/tbody/tr/td/h3/a", "/table/tbody/tr/td[1]/p[1][@class='date']", "/table/tbody/tr/td/h3/a" ], e = [ "textContent", "textContent", "href" ], f = function(b) {
+                var d = "", e = "", f = [];
+                for (var g = 0, h = b.length; g < h; g++) {
+                    f[f.length] = new Object;
+                    for (var i = 0, j = c.length; i < j; i++) {
+                        if (c[i] == "cdate") {
+                            var k = /([\(])+(.*?)+([\)])/g, l = new RegExp(k), m = l.exec(b[g][i]);
+                            m != null && (b[g][i] = unescape(m[0].replace(new RegExp("([(|)])", "g"), "")));
+                            var n = Date.parse(b[g][i].replace(/\./g, "/")), o = Date.parse(_this.opts.cdate.replace(/\./g, "/"));
+                            if (!isNaN(n) && !isNaN(o) && n < o) {
+                                i = c.length, f.pop();
+                                break;
+                            }
                         }
+                        f[f.length - 1][c[i]] = b[g][i];
                     }
-                    i[i.length - 1][c[l]] = f[j][l];
                 }
-            }
-            i.length > 0 && (typeof chrome == "undefined" ? (h = JSON.stringify(i), console.log(h)) : chrome.extension.sendRequest({
-                type: "push2Client",
-                data: i,
-                port: _this.opts.port
-            }, function(b) {
-                console.log(b.result), location.href = "http://www.oschina.net/news/list?p=" + a;
-            }));
+                f.length > 0 && (typeof chrome == "undefined" ? (e = JSON.stringify(f), console.log(e)) : chrome.extension.sendRequest({
+                    type: "push2Client",
+                    data: f,
+                    port: _this.opts.port
+                }, function(c) {
+                    console.log(c.result), b.length == f.length && (location.href = "http://www.oschina.net/news/list?p=" + a);
+                }));
+            };
+            getRows([ b, d, e ], f);
         },
         getContent: function() {
             _this = this;

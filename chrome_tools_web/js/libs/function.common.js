@@ -78,7 +78,7 @@ function getNodeAttr(args)
 	return tmp;
 }
 
-function getRows(args)
+function getRows(args,fn)
 {
 	var row_xpath = args[0],cols = args[1],attr = args[2];
 	var arrStr = [];
@@ -101,7 +101,8 @@ function getRows(args)
 			colStr = null;
 		}
 	}
-	return arrStr;
+	if(typeof(fn) != 'undefined')
+		fn(arrStr);
 }
 
 //?param=test
