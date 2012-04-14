@@ -1,0 +1,14 @@
+
+							<% _.each(rows, function(item){ %>
+								  <tr id="tr_<%=item.id%>">
+								    	<td><%=item.id%></td>
+								    	<td><%=item.cdate%></td>
+								    	<td><%=item.goodname%></td>
+								    	<td><a target="_blank" href="<%=item.goodurl%>"><%=item.goodurl%></a></td>
+								    	<td><img src="<%=item.goodimg%>" width="100px" height="100px" /></td>
+								    	<td><%=item.goodprice%></td>
+								    	<td><%=item.sale%></td>
+								    	<td><%=item.upgrade%></td>
+								  </tr>
+						   <%  }); %>
+

@@ -5,8 +5,9 @@ define([
 	'Backbone', 
 	'views/home/main',
 	'views/home/options',
-	'views/home/feed'
-	], function ($, _, Backbone, mainHomeView,optionsView,feedView) {
+	'views/home/feed',
+	'views/taobao/top'
+	], function ($, _, Backbone, mainHomeView,optionsView,feedView,taobaoTopGoodView) {
 	var pageDownloaded = function(data,fn){
 		var target = $("#main-content"),
 			h = location.hash;
@@ -68,6 +69,10 @@ define([
             '!/options': 'optionsAction',
             '!/feed': 'feedAction',
             '!/feed/:query': 'feedSearchAction',
+            '!/taobao_top_goods': 'taobaoTopGoodAction',
+            '!/taobao_top_goods/:query': 'taobaoTopGoodSearchAction',
+            '!/taobao_top_goods/page/:page': 'taobaoTopGoodMoreAction',
+            
             '!/test': 'test',
             
             // Default
@@ -78,6 +83,15 @@ define([
         },
         feedAction: function(){        	
         	this.render(feedView);
+        },
+        taobaoTopGoodAction: function(){        	
+        	this.render(taobaoTopGoodView);
+        },
+        taobaoTopGoodSearchAction: function(query){
+        	taobaoTopGoodView.find(query,pageDownloaded);
+        },
+        taobaoTopGoodMoreAction: function(page){
+        	taobaoTopGoodView.more(page,pageDownloaded);
         },
         feedSearchAction: function(query){
         	feedView.findFeed(query,pageDownloaded);

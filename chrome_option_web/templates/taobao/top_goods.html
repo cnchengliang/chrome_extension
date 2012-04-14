@@ -1,0 +1,41 @@
+
+    	<div class="container_12 leading">
+		<section class="portlet">
+			<header>
+				<h2>淘宝数据</h2>
+			</header>
+			<section>
+	    		<div class="row-fluid">
+	    			<div class="well">
+						<input id="query_text" type="text" class="input-medium search-query">
+						<button id="search" class="btn" type="button">查询</button>
+						<button id="more" class="btn" type="button">more...</button>
+						<span id="page">2</span>
+						http://top.taobao.com/level3.php?cat=16&level3=1623&show=sell&up=false&offset=0
+					</div>
+						<form id="sc_form">
+						<table id="table_result" class="table table-bordered">
+							<thead>
+								<tr>
+									<th width="10px">#</th>
+									<th width="100px">时间</th>
+									<th width="100px">商品名称</th>
+									<th width="100px">来源</th>
+									<th width="100px">图片</th>
+									<th width="100px">价格</th>
+									<th width="100px">销量</th>
+									<th width="100px">升降幅度</th>
+								</tr>
+							</thead>
+							<tbody>
+								<%=content%>
+							</tbody>
+						</table>
+						</form>
+					</div>
+
+			</section>
+		</section>
+	</div>
+
+
