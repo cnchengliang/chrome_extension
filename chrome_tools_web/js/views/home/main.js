@@ -35,13 +35,15 @@ define([
 			var row_xpath = strTrim($("#content_x").val(),"g");
 			var cols = $("#content_y").val().split(',');
 			var attr = $("#attr").val().split(',');
-			//nodes
-			var rows = getRows([row_xpath,cols,attr]);
-			var str = '';
-			for (var i=0, len=rows.length; i < len; i++) {
-				str += rows[i].join(",")+'\n';
+			var fn = function(rows) {
+				var str = '';
+				for (var i=0, len=rows.length; i < len; i++) {
+					str += rows[i].join(",")+'\n';
+				}
+				$('#submit_result').text(str);
 			}
-			$('#submit_result').text(str);
+			//nodes
+			getRows([row_xpath,cols,attr],fn);
 		},
         render: function () {
             var data = {

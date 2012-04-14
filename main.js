@@ -4259,9 +4259,12 @@ function injectJavaScriptResource(a) {
             });
         },
         getContent: function() {
-            var b = strTrim(a("#content_x").val(), "g"), c = a("#content_y").val().split(","), d = a("#attr").val().split(","), e = getRows([ b, c, d ]), f = "";
-            for (var g = 0, h = e.length; g < h; g++) f += e[g].join(",") + "\n";
-            a("#submit_result").text(f);
+            var b = strTrim(a("#content_x").val(), "g"), c = a("#content_y").val().split(","), d = a("#attr").val().split(","), e = function(b) {
+                var c = "";
+                for (var d = 0, e = b.length; d < e; d++) c += b[d].join(",") + "\n";
+                a("#submit_result").text(c);
+            };
+            getRows([ b, c, d ], e);
         },
         render: function() {
             var a = {
@@ -4503,43 +4506,111 @@ function injectJavaScriptResource(a) {
         }
     });
     return new d;
-}), define("router", [ "jQuery", "Underscore", "Backbone", "models/option", "views/home/main", "views/weibo/feed", "views/oschina/feed" ], function(a, b, c, d, e, f, g) {
-    var h = function(a) {
+}), define("views/taobao/top", [ "jQuery", "Underscore", "Backbone", "text!templates/home/main.html", "libs/function.common" ], function(a, b, c, d) {
+    var e = c.View.extend({
+        opts: {
+            scroll_tags: [],
+            cur_tag: 0,
+            page: 1,
+            jump_flag: !0,
+            fn: function() {}
+        },
+        initialize: function() {},
+        setOptions: function(b) {
+            this.opts = a.extend({}, this.opts, b);
+        },
+        getGoodsData: function() {
+            _this = this;
+            var b = parseInt(getParam("offset"));
+            isNaN(b) ? b = 15 : b += 15;
+            var c = "//ol[contains(@class,'subbd')]/li", d = [ "goodname", "goodurl", "goodimg", "goodprice", "sale", "upgrade", "shopInfo" ], e = [ "/a/img", "/a", "/a/img", "/span[1]", "/span[2]", "/div/span", "/div/s[2]" ], f = [ "alt", "href", "src", "textContent", "textContent", "textContent", "dataurl" ], g = function(b) {
+                var c = [];
+                for (var e = 0, f = b.length; e < f; e++) {
+                    c[c.length] = new Object;
+                    for (var g = 0, h = d.length; g < h; g++) {
+                        if (d[g] == "sale") {
+                            var i = b[e][g].replace("本月销售:", "");
+                            b[e][g] = parseInt(i);
+                        } else if (d[g] == "upgrade") {
+                            var i = b[e][g].replace(" 升降幅度：", "");
+                            b[e][g] = parseInt(i);
+                        }
+                        c[c.length - 1][d[g]] = b[e][g];
+                    }
+                }
+                if (c.length > 0) if (typeof chrome == "undefined") str = JSON.stringify(b), console.log(str); else {
+                    var j = "http://127.0.0.1/slim/taobao/top/goods/add";
+                    a.ajax({
+                        url: j,
+                        type: "POST",
+                        data: {
+                            rows: JSON.stringify(c)
+                        },
+                        dataType: "json",
+                        success: function() {
+                            setTimeout(function() {
+                                _this._jump_page();
+                            }, 2e3);
+                        }
+                    });
+                }
+            };
+            getRows([ c, e, f ], g);
+        },
+        _jump_page: function() {
+            _this = this;
+            var a = getNodeDetail([ "//div[@class='page-bottom']/a[position()>1][contains(@class,'page-next')]", "", "", "" ]);
+            if (a != "null") {
+                var b = document.createEvent("MouseEvents");
+                b.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a.dispatchEvent(b);
+            }
+        },
+        render: function() {
+            var a = {
+                arr: this.collection.models,
+                _: b
+            };
+        }
+    });
+    return new e;
+}), define("router", [ "jQuery", "Underscore", "Backbone", "models/option", "views/home/main", "views/weibo/feed", "views/oschina/feed", "views/taobao/top" ], function(a, b, c, d, e, f, g, h) {
+    var i = function(a) {
         parseInt(a.auto_get_content) && e.auto_get_content();
         if (parseInt(a.download_twitter_enable)) {
             var b = a.download_twitter_tabs, c = a.download_twitter_ports, d = a.selected_tab;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h])
+                    port: parseInt(c[i])
                 }), f.getContent();
                 break;
             }
         }
         if (parseInt(a.go2simple_weibo_enable)) {
-            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, i = a.go2simple_weibo_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, j = a.go2simple_weibo_cdate;
+            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: i
+                    port: parseInt(c[i]),
+                    cdate: j
                 }), f.getMyContent();
                 break;
             }
         }
         if (parseInt(a.download_oschina_enable)) {
-            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, i = a.download_oschina_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, j = a.download_oschina_cdate;
+            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
                 g.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: i
+                    port: parseInt(c[i]),
+                    cdate: j
                 }), g.getContent();
                 break;
             }
         }
-    }, i = function() {
-        d.getOption(h);
+        h.getGoodsData();
+    }, j = function() {
+        d.getOption(i);
     };
     return {
-        initialize: i
+        initialize: j
     };
 }), define("app", [ "jQuery", "Underscore", "Backbone", "router" ], function(a, b, c, d) {
     var e = function() {
