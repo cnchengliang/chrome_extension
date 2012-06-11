@@ -100,6 +100,17 @@ define([
 				
 			});
 			
+			$('#send_notice_content').bind('click', function(){
+				chrome.extension.sendRequest({
+						type:'notice',
+						title:'通知标题',
+						msg:$('#notice_content').val()
+					},
+					function(response) {
+						console.log('content sent!');
+				});				
+			});
+			
         },
         setTabs: function()
 		{
