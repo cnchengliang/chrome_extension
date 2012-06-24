@@ -21,11 +21,12 @@ define([
             });*/
         },
         auto_get_content: function (model) {
+        	_this = this;
             //console.log(model);
 			test();
 			//console.log(auto_get_content_template);
 			$('body').append(auto_get_content_template);
-			_this = this;
+			
 			$('#get_button').bind('click', function() {	
 				_this.getContent();
 			});

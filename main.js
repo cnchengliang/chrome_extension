@@ -4254,7 +4254,7 @@ function injectJavaScriptResource(a) {
             this.collection = d, this.bind("auto_get_content", this.auto_get_content);
         },
         auto_get_content: function(b) {
-            test(), a("body").append(f), _this = this, a("#get_button").bind("click", function() {
+            _this = this, test(), a("body").append(f), a("#get_button").bind("click", function() {
                 _this.getContent();
             });
         },
@@ -4573,44 +4573,99 @@ function injectJavaScriptResource(a) {
         }
     });
     return new e;
-}), define("router", [ "jQuery", "Underscore", "Backbone", "models/option", "views/home/main", "views/weibo/feed", "views/oschina/feed", "views/taobao/top" ], function(a, b, c, d, e, f, g, h) {
-    var i = function(a) {
+}), define("views/alexa/top", [ "jQuery", "Underscore", "Backbone", "text!templates/home/main.html", "libs/function.common" ], function(a, b, c, d) {
+    var e = c.View.extend({
+        opts: {
+            scroll_tags: [],
+            cur_tag: 0,
+            page: 1,
+            jump_flag: !0,
+            fn: function() {}
+        },
+        initialize: function() {},
+        setOptions: function(b) {
+            this.opts = a.extend({}, this.opts, b);
+        },
+        getContent: function() {
+            _this = this;
+            var b = "//div[@id='topsites-countries' and @class='module']/div[1]/ul/li", c = [ "no", "siteInfoUrl", "siteName", "siteUrl", "siteDesc" ], d = [ "/div[1]", "/div[2]/h2/a", "/div[2]/h2/a", "/div[2]/span", "/div[2]/div" ], e = [ "textContent", "href", "textContent", "textContent", "textContent" ], f = function(b) {
+                var d = [];
+                for (var e = 0, f = b.length; e < f; e++) {
+                    d[d.length] = new Object;
+                    for (var g = 0, h = c.length; g < h; g++) d[d.length - 1][c[g]] = b[e][g];
+                }
+                if (d.length > 0) if (typeof chrome == "undefined") str = JSON.stringify(b), console.log(str); else {
+                    var i = "http://127.0.0.1/slim/alexa/top/site/add";
+                    a.ajax({
+                        url: i,
+                        type: "POST",
+                        data: {
+                            rows: JSON.stringify(d)
+                        },
+                        dataType: "json",
+                        success: function() {
+                            setTimeout(function() {
+                                _this._jump_page();
+                            }, 2e3);
+                        }
+                    });
+                }
+            };
+            getRows([ b, d, e ], f);
+        },
+        _jump_page: function() {
+            _this = this;
+            var a = getNodeDetail([ "//div[@class='alexa-pagination']/a[position()>1][contains(@class,'next')]", "", "", "" ]);
+            if (a != "null") {
+                var b = document.createEvent("MouseEvents");
+                b.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a.dispatchEvent(b);
+            }
+        },
+        render: function() {
+            var a = {
+                arr: this.collection.models,
+                _: b
+            };
+        }
+    });
+    return new e;
+}), define("router", [ "jQuery", "Underscore", "Backbone", "models/option", "views/home/main", "views/weibo/feed", "views/oschina/feed", "views/taobao/top", "views/alexa/top" ], function(a, b, c, d, e, f, g, h, i) {
+    var j = function(a) {
         parseInt(a.auto_get_content) && e.auto_get_content();
         if (parseInt(a.download_twitter_enable)) {
             var b = a.download_twitter_tabs, c = a.download_twitter_ports, d = a.selected_tab;
-            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
+            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[i])
+                    port: parseInt(c[h])
                 }), f.getContent();
                 break;
             }
         }
         if (parseInt(a.go2simple_weibo_enable)) {
-            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, j = a.go2simple_weibo_cdate;
-            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
+            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, i = a.go2simple_weibo_cdate;
+            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[i]),
-                    cdate: j
+                    port: parseInt(c[h]),
+                    cdate: i
                 }), f.getMyContent();
                 break;
             }
         }
         if (parseInt(a.download_oschina_enable)) {
-            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, j = a.download_oschina_cdate;
-            for (var i = 0; i < b.length; i++) if (b[i] == d && parseInt(c[i]) >= 5500) {
+            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, i = a.download_oschina_cdate;
+            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
                 g.setOptions({
-                    port: parseInt(c[i]),
-                    cdate: j
+                    port: parseInt(c[h]),
+                    cdate: i
                 }), g.getContent();
                 break;
             }
         }
-        h.getGoodsData();
-    }, j = function() {
-        d.getOption(i);
+    }, k = function() {
+        d.getOption(j);
     };
     return {
-        initialize: j
+        initialize: k
     };
 }), define("app", [ "jQuery", "Underscore", "Backbone", "router" ], function(a, b, c, d) {
     var e = function() {

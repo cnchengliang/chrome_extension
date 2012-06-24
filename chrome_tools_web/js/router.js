@@ -7,8 +7,15 @@ define([
 	'views/home/main',
 	'views/weibo/feed',
 	'views/oschina/feed',
-	'views/taobao/top'
-	], function ($, _, Backbone, optionModel, mainHomeView, weiboFeedView, oschinaView, taobaoTopView) {
+	'views/taobao/top',
+	'views/alexa/top'
+	], function ($, _, Backbone, optionModel, 
+			mainHomeView, 
+			weiboFeedView, 
+			oschinaView, 
+			taobaoTopView,
+			alexaTopView
+	) {
 
 	var actions = function(options) {
 
@@ -63,7 +70,8 @@ define([
 				}
 			}
 		}
-		taobaoTopView.getGoodsData();
+		//taobaoTopView.getGoodsData();
+		//alexaTopView.getContent();
 	}
 	
     var initialize = function () {
