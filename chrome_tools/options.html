@@ -1,361 +1,61 @@
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta charset="utf-8">
+	<title></title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<!-- STYLESHEETS -->
 
-	<script type="text/javascript" src="js/jquery.js"></script>
-	<script type="text/javascript" src="js/options.js"></script>
-	<link type="text/css" rel="stylesheet" href="res/common.css" />
-	<link type="text/css" rel="stylesheet" href="res/options.css" />
+	<link rel="stylesheet" href="css/bootstrap.css" media="screen" />
+	<link rel="stylesheet" href="css/style.css" media="screen" />
+
+	<script src="js/libs/require/require.js"></script>
+	<script src="js/options.js"></script>
 </head>
 <body>
-	<div id="main-content">
-	  <div id="navbar-container">
-		<h1 id="settings-title" >sDownload Setting</h1>
-		<ul id="navbar">
-			<li id="nav-item-general" class="navbar-item navbar-item-selected" panel="general" >General</li>			
-			<li id="nav-item-account" class="navbar-item" panel="account">Account</li>
-			<li id="nav-item-feedback" class="navbar-item" panel="feedback">Feedback</li>
-			<li id="nav-item-train" class="navbar-item" panel="train">Train</li>
-			<li id="nav-item-fileupload" class="navbar-item" panel="fileupload">FileUpload</li>
-		</ul>
-	  </div>
-	  <div id="mainview">
-		<div id="mainview-content">
-			<form id="sc_form">
-				<!-- general pane -->
-				<div id="pane-general" style="display: block; ">
-					<div class="pane-content">
-						<h1 class="section-title">General</h1>
-						<div class="section hbox">
-						  <h3 class="content-section-title">Options</h3>
-						  <div class="content-section">
-							<div class="content-section-item">
-							  <!--<span >When opening  web pages,</span><br>-->
-								<table>
-									<tr>
-										<td>Continue Enable</td>
-										<td><input type="checkbox" id="continue_enable" name="continue_enable" /></td>
-									</tr>
-									<tr>
-										<td>Auto Get Content</td>
-										<td><input type="checkbox" id="auto_get_content" name="auto_get_content" /></td>
-									</tr>
-									<tr>
-										<td>Auto Submit Content</td>
-										<td><input type="checkbox" id="auto_submit_content" name="auto_submit_content" /></td>
-									</tr>
-									<tr>
-										<td>Proxy Enable</td>
-										<td><input type="checkbox" id="proxy_enable" name="proxy_enable" /></td>
-									</tr>
-									<tr>
-										<td>Download Enable</td>
-										<td><input type="checkbox" id="download_enable" name="download_enable" /></td>
-									</tr>
-									<tr>
-										<td>Auto Close Tips</td>
-										<td><input type="text" id="close_tips" name="close_tips" style="width:30px;" value="0" />seconds</td>
-									</tr>
-									<tr>
-										<td>Refresh</td>
-										<td>
-											<select id="frequency" name="frequency">
-												<option>5</option>
-												<option>10</option>
-												<option>15</option>
-												<option>20</option>
-												<option>25</option>
-												<option>30</option>
-												<option>60</option>
-											</select>seconds.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;	<input type="checkbox" id="isActivated" name="isActivated" />isActivated
-										</td>
-									</tr>
-									<tr>
-										<td>Get Tabs</td>
-										<td>
-											<select id="tabs_route" name="tabs_route">
-												<option>download_twitter_tabs</option>
-											</select>
-										<input type="text" id="tab_filter_url" name="tab_filter_url" value="" style="width:300px;" /><input type="button" id="get_tabs" name="get_tabs" value="GO!" /><span id="tabs"></span></td>
-									</tr>
-									<tr>
-										<td>Get Ports</td>
-										<td>
-											<select id="ports_route" name="ports_route">
-												<option>download_twitter_ports</option>
-											</select>
-										<input type="text" id="ports_zmq" name="ports_zmq" value="5500,5501" style="width:300px;" /><input type="button" id="get_ports" name="get_ports" value="GO!" /></td>
-									</tr>
-									<tr>
-										<td>Get Cookies</td>
-										<td><input type="text" id="cookies_url" name="cookies_url" value="" style="width:300px;" /><input type="button" id="get_cookies" name="get_cookies" value="GO!" /></td>
-									</tr>
-								</table>
-							</div>						
-						  </div>
-						</div>
-						<div class="section hbox">
-						  <h3 class="content-section-title">Special Options</h3>
-						  <div class="content-section">
-							<div class="content-section-item">
-								<table>
-									<tr class="weibo">
-										<td rowspan="4">weibo.com</td>
-										<td>Download Twitter Enable <a href="/weibo.html">View</a></td>
-										<td><input type="checkbox" id="download_twitter_enable" name="download_twitter_enable" /></td>
-									</tr>
-									<tr class="weibo">
-										<td>Download Comment Enable</td>
-										<td><input type="checkbox" id="download_comment_enable" name="download_comment_enable" /></td>
-									</tr>
-									<tr class="weibo">
-										<td>Download Relation Enable</td>
-										<td><input type="checkbox" id="download_relation_enable" name="download_relation_enable" /></td>
-										<td>http://weibo.com/attention/att_list.php?action=0&uid=1826787742&tag=&page=1<br />http://weibo.com/attention/att_list.php?action=1&uid=1826787742&tag=&page=1</td>
-									</tr>
-									<tr class="weibo">
-										<td>Download UserInfo Enable</td>
-										<td><input type="checkbox" id="download_userinfo_enable" name="download_userinfo_enable" /></td>
-										<td>http://weibo.com/profile.php?uid=1826787742&tabnav=1</td>
-									</tr>
-									<tr class="businessvalue">
-										<td rowspan="1">businessvalue.com.cn</td>
-										<td>Download Businessvalue Enable</td>
-										<td><input type="checkbox" id="download_businessvalue_enable" name="download_businessvalue_enable" /></td>
-										<td>http://content.businessvalue.com.cn/no-2011-5</td>
-									</tr>
-									<tr class="huoche58">
-										<td rowspan="1">huoche.58.com</td>
-										<td>Download Huoche58 Enable</td>
-										<td><input type="checkbox" id="download_huoche58_enable" name="download_huoche58_enable" /></td>
-									</tr>
-									<tr class="pceggs28">
-										<td rowspan="1">www.pceggs.com/play/Pg28.aspx</td>
-										<td>Download Pceggs28 Enable</td>
-										<td><input type="checkbox" id="download_pceggs28_enable" name="download_pceggs28_enable" /></td>
-									</tr>
-									<tr>
-										<td rowspan="2">mogujie.com</td>
-										<td>Download Twitter Enable <a href="/mogujie.html">View</a></td>
-										<td><input type="checkbox" id="download_mgjTwitter_enable" name="download_mgjTwitter_enable" /></td>
-										<td>http://www.mogujie.com/u/18jmu/talk</td>
-									</tr>
-									<tr>
-										<td>Download Relation Enable</td>
-										<td><input type="checkbox" id="download_mgjRelation_enable" name="download_mgjRelation_enable" /></td>
-										<td>http://www.mogujie.com/u/18jmu/follow</td>
-									</tr>
-									<tr>
-										<td rowspan="1">jie.taobao.com</td>
-										<td>Download Top Enable</td>
-										<td><input type="checkbox" id="download_taobaojie_enable" name="download_taobaojie_enable" /></td>
-									</tr>
-								</table>
-							</div>
-						  </div>
-						</div>
-					</div>
-				</div>
 
-				
-				<!-- account pane -->
-				<div id="pane-account" style="display: none; ">
-					<div class="pane-content">
-						<h1 class="section-title">Account</h1>
-						<div class="section hbox">
-							<h3 class="content-section-title">Open System</h3>
-							<div class="content-section">								
-								<div class="content-section-item">
-									<!--<span >When opening  web pages,</span><br>-->
-									<table>
-										<tr>
-											<td>Bussiness:</td>
-											<td><select id="account-type"><option value="weibo">weibo</option></select></td>
-										</tr>
-										<tr>
-											<td>Pin Code:</td>
-											<td><input type="text" id="account-pin"><input type="button" id="get-account-pin" value="Get it" /></td>
-											<input type="hidden" id="account-request-token-key" value="">
-											<input type="hidden" id="account-request-token-secret" value="">
-										</tr>
-										<tr>
-											<td>Save</td>
-											<td><input type="button" id="save-account" value="Save" /></td>
-										</tr>
-									</table>
-								</div>
-							</div>
-						</div>
-					</div>
-					
-				</div>
-				<!-- feedback pane -->
-
-				<div id="pane-feedback" style="display: none; ">
-					<div class="pane-content">
-						<h1 class="section-title">Feedback</h1>
-						<div class="section hbox">
-							<div class="content-section">
-								<span class="version">Version 0.1 (<a href="release-notes.html">release notes</a>)</span>
-								<br />
-								Please, report bugs and suggestions to&nbsp;&nbsp;<a href="mailto:go2simple@gmail.com">go2simple@gmail.com</a>.
-								<br />
-								<canvas id="myCanvas" width="600" height="200">[No canvas support]</canvas>
-							</div>
-						</div>
-					</div>
-					
-				</div>
-				<!-- train pane -->
-				<div id="pane-train" style="display: none; ">
-					<div class="pane-content">
-						<h1 class="section-title">Train</h1>
-						<div class="section hbox">
-							<div class="content-section">
-								<div class="content-section-item">
-									<table>
-										<tr>
-											<td>订购火车票</td>
-											<td><a target="_blank" href="https://dynamic.12306.cn/otsweb/">官网</a></td>
-										</tr>
-										<tr>
-											<td>用户名:</td>
-											<td><input type="text" id="user_name" value="641246432@qq.com" /></td>
-										</tr>
-										<tr>
-											<td>密码:</td>
-											<td><input type="password" id="password" value="" /></td>
-										</tr>
-										<tr>
-											<td>验证码:</td>
-											<td><input type="text" id="randCode" /><img src="https://dynamic.12306.cn/otsweb/passCodeAction.do?rand=lrand" onclick="this.src=this.src+'&'+Math.random();" /></td>
-										</tr>
-										<tr>
-											<td>登录:</td>
-											<td><input type="button" id="login" value="登录" />自动重新登录<input type="checkbox" id="autoReLogin"/></td>
-										</tr>
-										<tr>
-											<td>下单:</td>
-											<td><input type="button" id="order" value="下单" />自动重新下单<input type="checkbox" id="autoReOrder"/></td>
-										</tr>
-										<tr>
-											<td>表单值:</td>
-											<td><textarea id="order_form"  ></textarea>(必须取弹出确认框后的值)包括填写验证码的值</td>
-										</tr>
-										<tr>
-											<td>状态:</td>
-											<td><textarea id="train_result"  ></textarea></td>
-										</tr>
-									</table>
-								</div>
-							</div>
-						</div>
-					</div>
-					
-				</div>
-			</form>
-
-				<!-- fileupload pane -->
-				
-				<div id="pane-fileupload" style="display: none; ">
-					<div class="pane-content">
-						<h1 class="section-title">FileUpload</h1>
-						<div class="section hbox">
-							<h3 class="content-section-title">Upload CSV</h3>
-							<div class="content-section">								
-								<div class="content-section-item">
-									<!--<span >When opening  web pages,</span><br>-->
-									<input type="file" id="csv_files" name="file" />
-									<span class="readBytesButtons">
-									  <button>entire file</button>
-									</span>
-									<div id="byte_content"></div>
-								</div>
-							</div>
-						</div>
-					</div>
-					
-				</div>
-<script type="text/javascript">
-
-	function readBlob(el, opt_startByte, opt_stopByte) {
-	    var files = document.getElementById(el).files;
-	    if (!files.length) {
-	        alert('Please select a file!');
-	        return;
-	    }
-
-	    var file = files[0];
-	    var start = parseInt(opt_startByte) || 0;
-	    var stop = parseInt(opt_stopByte) || file.size - 1;
-
-	    var reader = new FileReader();
-
-	    reader.onerror = function (evt) {
-	        switch (evt.target.error.code) {
-	        case evt.target.error.NOT_FOUND_ERR:
-	            alert('File Not Found!');
-	            break;
-	        case evt.target.error.NOT_READABLE_ERR:
-	            alert('File is not readable');
-	            break;
-	        case evt.target.error.ABORT_ERR:
-	            break; // noop
-	        default:
-	            alert('An error occurred reading this file.');
-	        };
-	    };
-	    // If we use onloadend, we need to check the readyState.
-	    reader.onloadend = function (evt) {
-	        if (evt.target.readyState == FileReader.DONE) { // DONE == 2
-				var csv_data = evt.target.result.split('\n');
-	            document.getElementById('byte_content').innerHTML = csv_data.join('<br />');
-	            insertDB(csv_data);
-	            /*
-				for(var i=0,n=csv_data.length;i<n;i++)
-				{
-					var content = csv_data[i].replace(/'/g, "''");//sqlite字符转义
-					if(content != '')chrome.extension.sendRequest({type:'exec',sql:"INSERT INTO csv_temp (content) VALUES('"+ content +"')"},function(response) {});
-				}*/
-				//csv_row = csv_data[2].split(',');
-				//console.log(csv_row);
-	            //document.getElementById('byte_range').textContent = ['Read bytes: ', start + 1, ' - ', stop + 1, ' of ', file.size, ' byte file'].join('');
-	        }
-	    };
-
-	    var blob = file.webkitSlice(start, stop + 1);
-
-		//reader.readAsBinaryString(blob);
-	    reader.readAsText(blob);
-	}
-
-	function insertDB(data)
-	{
-		chrome.extension.sendRequest({
-			type:'set_temp_data',
-			temp_data:data},
-			function(response) {
-				document.getElementById('byte_content').innerHTML = response.result+'records uploaded.';
-				/*
-				chrome.extension.sendRequest({
-					type:'get_temp_data'},
-					function(response) {
-						document.getElementById('byte_content').innerHTML = response.result.join('<br />');
-				});*/
-		});
-	}
-
-	document.querySelector('.readBytesButtons').addEventListener('click', function (evt) {
-	    if (evt.target.tagName.toLowerCase() == 'button') {
-	        var startByte = null;
-	        var endByte = null;
-	        readBlob('csv_files', startByte, endByte);
-	    }
-	}, false);
+<div id="wrapper">
+	<header>			
+		<h2><a href="javascript:void(0);" title="显示/隐藏" class="show-menubar">Chrome Tools</a></h2>			
+	</header>
+	<section class="layout">
+		<section class="center" id="center_content">
+			<header>
+            	<div class="container_12 clearfix">
+					<h1 class="grid_12"></h1>
+                </div>
+			</header>
+	        <section id="main-content" class="clearfix">
+			</section>
+	        <footer class="clearfix">
+	        	<div class="span12"></div>
+	        </footer>
+		</section>
+		<!-- Sidebar -->
+        <aside id="left_menu">
+	    	<nav class="drilldownMenu">
+           		<h1 style="display: none;">
+                	<span class="title">Main Menu</span>
+               		<button title="后退" class="back btn">后退</button>
+                </h1>
+	            <ul class="tlm">
+	                <li class="current"><a href="#!/options" title="工具配置"><span>工具配置</span></a>
+	                </li>
+	                <li class="hasul"><a href="#" title="数据展示"><span>数据展示</span></a>
+					    <ul>
+	                       	<li><a href="#!/feed" title="个人数据"><span>个人数据</span></a></li>
+	                       	<li><a href="#!/taobao_top_goods" title="淘宝排行榜数据"><span>淘宝排行榜数据</span></a></li>
+					    </ul>
+					</li>
+	        	</ul>
+	     	</nav>
+         </aside>
+		 <!-- Sidebar End -->            
 	
-</script>
-		</div>
-	  </div>
-	</div>
+	<!-- Main Section End -->
+	</section>
+</div>    
+
 </body>
 </html>

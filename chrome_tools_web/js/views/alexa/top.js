@@ -45,7 +45,7 @@ define([
 						str = JSON.stringify(rows);
 						console.log(str);
 					}else
-					{
+					{/*
 						var url = "http://127.0.0.1/slim/alexa/top/site/add";
 					    $.ajax({
 					        url:url,
@@ -55,7 +55,14 @@ define([
 					        success:function () {
 					        	setTimeout(function(){_this._jump_page();}, 2000);
 					        }
-					    });
+					    });*/
+						chrome.extension.sendRequest({
+								type:'set_mem_array',
+								temp_data:rows_object
+								},
+								function(response) {
+									setTimeout(function(){_this._jump_page();}, 2000);
+						});
 					}
 					
 				}
@@ -86,6 +93,25 @@ define([
 								  0, // button
 								  null); // relatedTarget
 				el.dispatchEvent(ev);
+			}else
+			{
+				chrome.extension.sendRequest({
+						type:'get_mem_array'
+						},
+						function(response) {
+							var data = response.result;
+							var content = '';
+							for (var i=0, len=data.length; i < len; i++)
+							{
+								var obj = data[i];
+								for (var prop in obj) {
+									content += obj[prop]+','
+								}
+								content += '\n';
+							}
+							exportFile('alexa.csv',content);
+				});
+				
 			}
         },
         render: function () {

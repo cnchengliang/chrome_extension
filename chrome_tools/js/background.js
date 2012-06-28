@@ -96,6 +96,29 @@ var html5db = (function ()
 })();
 html5db.openDb('sDownload','sDownload',500*1024*1024);
 
+
+var MemoryDB = function() {
+  this.arr_content = [];
+};
+
+MemoryDB.prototype.setArrContent = function(content) {
+	if(content.constructor == Array)
+	{
+		if(content.length == 0)
+		{
+			this.arr_content = [];
+		}else
+		{
+			this.arr_content = this.arr_content.concat(content);
+		}
+	}
+};
+MemoryDB.prototype.getArrContent = function() {
+  return this.arr_content;
+};
+
+var memdb = new MemoryDB();
+
 function notice(title,msg)
 {
 	/*
@@ -208,6 +231,20 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 	if (reqtype == 'set_temp_flag') {
 		window.localStorage.setItem('temp_flag', JSON.stringify(request.temp_flag));
 		sendResponse({result:request.temp_flag});
+		return;
+	}
+
+
+
+	if (reqtype == 'set_mem_array') {
+		memdb.setArrContent(request.temp_data);
+		sendResponse({result:request.temp_data.length});
+		return;
+	}
+
+	if (reqtype == 'get_mem_array') {
+		var temp_data = memdb.getArrContent();;
+		sendResponse({result:temp_data});
 		return;
 	}
 	
@@ -471,4 +508,6 @@ Timer.prototype.updateBadge = function() {
 var timer = new Timer();
 timer.setTime(10);
 timer.restoreLastSession();
+
+
 

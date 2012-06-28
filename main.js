@@ -87,6 +87,22 @@ function injectJavaScriptResource(a) {
     b.type = "text/javascript", b.charset = "utf-8", b.innerHTML = a, (document.body || document.head || document.documentElement).appendChild(b);
 }
 
+function exportFile(a, b) {
+    function e(a, b) {
+        var c = a.type, e = "application/octet-stream";
+        if (c && c != e) {
+            var f = a.slice || a.webkitSlice || a.mozSlice;
+            a = f.call(a, 0, a.size, e);
+        }
+        var g = d.createObjectURL(a), h = document.createElementNS("http://www.w3.org/1999/xhtml", "a");
+        h.href = g, h.download = b;
+        var i = document.createEvent("MouseEvents");
+        i.initMouseEvent("click", !0, !1, window, 0, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), h.dispatchEvent(i), d.revokeObjectURL(g);
+    }
+    var c = c || WebKitBlobBuilder || MozBlobBuilder, d = d || webkitURL || window, f = new c;
+    f.append(b), e(f.getBlob("text/plain;charset=utf-8"), a);
+}
+
 (function() {
     function i(a) {
         var b = a.currentTarget || a.srcElement, c, g, h;
@@ -4588,30 +4604,22 @@ function injectJavaScriptResource(a) {
         },
         getContent: function() {
             _this = this;
-            var b = "//div[@id='topsites-countries' and @class='module']/div[1]/ul/li", c = [ "no", "siteInfoUrl", "siteName", "siteUrl", "siteDesc" ], d = [ "/div[1]", "/div[2]/h2/a", "/div[2]/h2/a", "/div[2]/span", "/div[2]/div" ], e = [ "textContent", "href", "textContent", "textContent", "textContent" ], f = function(b) {
-                var d = [];
-                for (var e = 0, f = b.length; e < f; e++) {
-                    d[d.length] = new Object;
-                    for (var g = 0, h = c.length; g < h; g++) d[d.length - 1][c[g]] = b[e][g];
+            var a = "//div[@id='topsites-countries' and @class='module']/div[1]/ul/li", b = [ "no", "siteInfoUrl", "siteName", "siteUrl", "siteDesc" ], c = [ "/div[1]", "/div[2]/h2/a", "/div[2]/h2/a", "/div[2]/span", "/div[2]/div" ], d = [ "textContent", "href", "textContent", "textContent", "textContent" ], e = function(a) {
+                var c = [];
+                for (var d = 0, e = a.length; d < e; d++) {
+                    c[c.length] = new Object;
+                    for (var f = 0, g = b.length; f < g; f++) c[c.length - 1][b[f]] = a[d][f];
                 }
-                if (d.length > 0) if (typeof chrome == "undefined") str = JSON.stringify(b), console.log(str); else {
-                    var i = "http://127.0.0.1/slim/alexa/top/site/add";
-                    a.ajax({
-                        url: i,
-                        type: "POST",
-                        data: {
-                            rows: JSON.stringify(d)
-                        },
-                        dataType: "json",
-                        success: function() {
-                            setTimeout(function() {
-                                _this._jump_page();
-                            }, 2e3);
-                        }
-                    });
-                }
+                c.length > 0 && (typeof chrome == "undefined" ? (str = JSON.stringify(a), console.log(str)) : chrome.extension.sendRequest({
+                    type: "set_mem_array",
+                    temp_data: c
+                }, function(a) {
+                    setTimeout(function() {
+                        _this._jump_page();
+                    }, 2e3);
+                }));
             };
-            getRows([ b, d, e ], f);
+            getRows([ a, c, d ], e);
         },
         _jump_page: function() {
             _this = this;
@@ -4619,7 +4627,17 @@ function injectJavaScriptResource(a) {
             if (a != "null") {
                 var b = document.createEvent("MouseEvents");
                 b.initMouseEvent("click", !1, !1, window, 1, 0, 0, 0, 0, !1, !1, !1, !1, 0, null), a.dispatchEvent(b);
-            }
+            } else chrome.extension.sendRequest({
+                type: "get_mem_array"
+            }, function(a) {
+                var b = a.result, c = "";
+                for (var d = 0, e = b.length; d < e; d++) {
+                    var f = b[d];
+                    for (var g in f) c += f[g] + ",";
+                    c += "\n";
+                }
+                exportFile("alexa.csv", c);
+            });
         },
         render: function() {
             var a = {

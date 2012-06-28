@@ -71,7 +71,9 @@ define([
 			}
 		}
 		//taobaoTopView.getGoodsData();
-		//alexaTopView.getContent();
+		//alexaTopView.getContent();	
+		
+		
 	}
 	
     var initialize = function () {
