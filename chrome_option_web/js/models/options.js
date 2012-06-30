@@ -17,7 +17,9 @@ define([
 		    go2simple_weibo_enable: '0',
 		    go2simple_weibo_tabs: '',		    
 		    go2simple_weibo_ports: '',		    
-		    go2simple_weibo_cdate: ''
+		    go2simple_weibo_cdate: '',
+		    tool_route: '',
+		    time_up: '0'
         },
         store: function(key,val){
         	var options = {};

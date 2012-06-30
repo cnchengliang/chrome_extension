@@ -100,6 +100,16 @@ define([
 				
 			});
 			
+			$('#set_time_up').bind('click', function(){
+				chrome.extension.sendRequest({
+						type:'set_time_up'
+					},
+					function() {
+						
+				});				
+			});
+			
+				
 			$('#send_notice_content').bind('click', function(){
 				chrome.extension.sendRequest({
 						type:'notice',

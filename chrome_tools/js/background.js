@@ -247,6 +247,13 @@ chrome.extension.onRequest.addListener(function (request, sender, sendResponse) 
 		sendResponse({result:temp_data});
 		return;
 	}
+
+
+	if(reqtype == 'set_time_up'){
+		var munites = getOption('time_up');		
+		timer.setTime(60*munites);
+		timer.restoreLastSession();
+	}
 	
 	var sql = request.sql;
 	if(!sql || sql == '') return;
@@ -478,8 +485,8 @@ Timer.prototype.notify = function(htmlFilePath) {
   this.cancelNotification();
   this.notification = webkitNotifications.createHTMLNotification(htmlFilePath);
   this.notification.show();*/
-  var title = 'test';
-  var msg = 'time up';
+  var title = '时间到了';
+  var msg = '^_^';
   this.notification = webkitNotifications.createHTMLNotification(
       'notification.html?title='+escape(title)+'&msg='+escape(msg)
     );	
@@ -504,10 +511,8 @@ Timer.prototype.updateBadge = function() {
     this.reset();
   }
 };
-
 var timer = new Timer();
-timer.setTime(10);
-timer.restoreLastSession();
+
 
 
 

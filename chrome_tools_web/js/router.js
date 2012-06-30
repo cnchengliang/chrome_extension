@@ -70,9 +70,14 @@ define([
 				}
 			}
 		}
-		//taobaoTopView.getGoodsData();
-		//alexaTopView.getContent();	
-		
+		if(options.tool_route == 'taobaoTopView_1')
+		{
+			taobaoTopView.getGoodsData();
+		}else if(options.tool_route == 'alexaTopView_1')
+		{
+			alexaTopView.getContent();
+		}
+
 		
 	}
 	

@@ -4652,33 +4652,34 @@ function exportFile(a, b) {
         parseInt(a.auto_get_content) && e.auto_get_content();
         if (parseInt(a.download_twitter_enable)) {
             var b = a.download_twitter_tabs, c = a.download_twitter_ports, d = a.selected_tab;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h])
+                    port: parseInt(c[j])
                 }), f.getContent();
                 break;
             }
         }
         if (parseInt(a.go2simple_weibo_enable)) {
-            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, i = a.go2simple_weibo_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, k = a.go2simple_weibo_cdate;
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: i
+                    port: parseInt(c[j]),
+                    cdate: k
                 }), f.getMyContent();
                 break;
             }
         }
         if (parseInt(a.download_oschina_enable)) {
-            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, i = a.download_oschina_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, k = a.download_oschina_cdate;
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 g.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: i
+                    port: parseInt(c[j]),
+                    cdate: k
                 }), g.getContent();
                 break;
             }
         }
+        a.tool_route == "taobaoTopView_1" ? h.getGoodsData() : a.tool_route == "alexaTopView_1" && i.getContent();
     }, k = function() {
         d.getOption(j);
     };
