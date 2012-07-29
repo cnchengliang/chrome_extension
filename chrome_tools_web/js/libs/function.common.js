@@ -174,3 +174,9 @@ function exportFile(filename,content)
 	bb.append(content);
 	saveAs(bb.getBlob('text/plain;charset=utf-8'), filename);
 }
+
+function addNodes(array, collection) {
+	for (var i = 0; collection && collection.length && i < collection.length; i++) {
+		array.push(collection[i]);
+	}
+}

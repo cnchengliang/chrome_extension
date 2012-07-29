@@ -1,6 +1,21 @@
+<style type="text/css">
+<!--
+.chrome_xpath_blue{border: 1px solid blue !important;}
+-->
+</style>
 <div id="dashboard_div" style="position:fixed;z-index:20000;background-color:#fff;bottom: 0%;right:0%;">
     <table>
         <tbody>
+        	<tr>
+                <td>
+                    path:
+                </td>
+                <td>
+                    <input type="button" id="get_path" value="click">&nbsp;&nbsp;
+                    <input type="button" id="unget_path" value="unclick">
+                    
+                </td>
+            </tr>
             <tr>
                 <td>
                     获取:
@@ -14,7 +29,7 @@
                     行:
                 </td>
                 <td colspan="4">
-                    <textarea id="content_x" style="height:50px;">/html/body/table[4]/tbody/tr[1]/td[2]/table[2]/tbody/tr[2]/td[2]/table/tbody/tr</textarea>
+                    <textarea id="content_x" style="height:50px;"></textarea>
                 </td>
             </tr>
             <tr>
@@ -23,7 +38,7 @@
                         列:
                     </td>
                     <td colspan="4">
-                        <textarea id="content_y" style="height:30px;">/td[2],/td[3]</textarea>
+                        <textarea id="content_y" style="height:30px;"></textarea>
                     </td>
                 </tr>
                 <tr>
@@ -31,7 +46,7 @@
                         属性:
                     </td>
                     <td>
-                        <textarea id="attr" style="height:30px;">textContent,textContent</textarea>
+                        <textarea id="attr" style="height:30px;">textContent</textarea>
                     </td>
                 </tr>
                 <tr>
