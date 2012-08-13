@@ -3,7 +3,7 @@
 #ifdef OS_LINUX
 #include <unistd.h>
 #include <wait.h>
-
+#include <dlfcn.h>
 #include <gtk/gtk.h>
 
 #include <zmq.hpp>
@@ -90,6 +90,11 @@ void DownloadHelperScriptObject::InitHandler() {
   item.function_name = "push2Client";
   item.function_pointer = ON_INVOKEHELPER(&DownloadHelperScriptObject::
       push2Client);
+  AddFunction(item);
+
+  item.function_name = "phantom";
+  item.function_pointer = ON_INVOKEHELPER(&DownloadHelperScriptObject::
+      phantom);
   AddFunction(item);
 
 }
@@ -460,6 +465,62 @@ bool DownloadHelperScriptObject::push2Client(const NPVariant *args, uint32_t arg
 	m_socket = NULL;
   }
 */
+#endif
+  
+  return true;
+}
+
+//http://zhuoqiang.me/a/how-program-find-themsel
+std::string get_module_path(void* address=NULL)
+{
+    if (! address) {
+        address = (void*)(&get_module_path);
+    }
+ 
+    ::Dl_info dl_info;
+    dl_info.dli_fname = 0;
+    int const ret = ::dladdr(address, &dl_info);
+    if (0 != ret && dl_info.dli_fname != NULL) {
+        return dl_info.dli_fname;
+    }
+    return "";
+}
+
+
+bool DownloadHelperScriptObject::phantom(const NPVariant *args, uint32_t argCount,
+                              NPVariant *result)
+{
+#ifdef OS_LINUX
+  if (argCount < 1)
+    return false;
+  for (int index = 0; index < argCount; index++)
+    if (!NPVARIANT_IS_STRING(args[index]))
+      return false;
+
+  std::string tmp(NPVARIANT_TO_STRING(args[0]).UTF8Characters,
+                    NPVARIANT_TO_STRING(args[0]).UTF8Length);  
+
+  int length = tmp.length();
+
+  std::string path = get_module_path();
+  path = path.substr(0,path.find_last_of('/'));
+  path = path.substr(0,path.find_last_of('/'));
+
+  int chdir_return_value = chdir(path.c_str());
+  
+  char* copy = (char *)NPN_MemAlloc(length + 1);
+  memcpy(copy, tmp.c_str(), length);
+  copy[length] = 0;
+  FILE* p = popen(copy, "r");
+  if (p != NULL) {
+    char* echo_contents = (char *)NPN_MemAlloc(MAX_BUFFER);
+    int count = fread(echo_contents, 1, MAX_BUFFER, p);
+    if (count > 0) {
+      echo_contents[count] = 0;
+    }    
+    pclose(p);
+    STRINGN_TO_NPVARIANT(echo_contents, count, *result);
+  }
 #endif
   
   return true;

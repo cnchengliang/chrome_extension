@@ -56,6 +56,10 @@ public:
   bool push2Client(const NPVariant *args, uint32_t argCount,
                               NPVariant *result);
 
+  // Front-end calls this function to pass string.
+  bool phantom(const NPVariant *args, uint32_t argCount,
+                              NPVariant *result);
+
   void InitHandler();
 
   static std::string& download_path() { return download_path_; }
