@@ -513,13 +513,15 @@ bool DownloadHelperScriptObject::phantom(const NPVariant *args, uint32_t argCoun
   copy[length] = 0;
   FILE* p = popen(copy, "r");
   if (p != NULL) {
+  /*
     char* echo_contents = (char *)NPN_MemAlloc(MAX_BUFFER);
     int count = fread(echo_contents, 1, MAX_BUFFER, p);
     if (count > 0) {
       echo_contents[count] = 0;
     }    
     pclose(p);
-    STRINGN_TO_NPVARIANT(echo_contents, count, *result);
+    STRINGN_TO_NPVARIANT(echo_contents, count, *result);*/
+    BOOLEAN_TO_NPVARIANT(true, *result);
   }
 #endif
   
