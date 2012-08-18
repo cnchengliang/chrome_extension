@@ -318,20 +318,43 @@ function interceptRequest(request) {
 }
 chrome.experimental.webRequest.onBeforeSendHeaders.addListener(interceptRequest, { }, ['requestHeaders','blocking']);
 
+
 var plugin = document.getElementById('pluginId');
 
-var obj = plugin.CreateObject("test");
-/*console.log(obj);
-
-var ret = plugin.push2Client("test","5501");
-console.log(ret);*/
+var obj = plugin.CreateObject("simple");
+console.log(obj);
 
 
+var phantomjs_opt = {'url':'http://www.baidu.com','option':{'route':'other.tool','row_xpath':"//p[@id='lk']/a[3]",'cols':'','attr':'textContent'}};
+var opt_str = JSON.stringify(phantomjs_opt).replace(/\"/g, '\\"');
+opt_str = opt_str.replace(/\'/g, "\\'");
+
+var ret = plugin.phantom("plugin/bin/phantomjs js/init.js " + opt_str);
+console.log(ret);
 
 
 
+// sse.php sends messages with text/event-stream mimetype.
+var source = new EventSource('http://127.0.0.1:9080/result');
+source.addEventListener('message', function(event) {
+  var data = JSON.parse(event.data);
 
+  var d = new Date();
+  var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
 
+  console.log('lastEventID: ' + event.lastEventId +
+             ', server time: ' + timeStr, 'msg:'+data.sse_result);
+}, false);
+
+source.addEventListener('open', function(event) {
+  console.log('> Connection was opened');
+}, false);
+
+source.addEventListener('error', function(event) {
+  if (event.eventPhase == 2) { //EventSource.CLOSED
+    console.log('> Connection was closed');
+  }
+}, false);
 
 
 
