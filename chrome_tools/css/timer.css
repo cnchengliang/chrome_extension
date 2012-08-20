@@ -1,0 +1,65 @@
+img {
+  float: left;
+}
+
+
+.body-timeup {
+  height: 75px;
+  margin: 0;
+  width: 246px;
+}
+
+.message-timeup {
+  color: #222;
+  font: 13px arial, sans-serif;
+  left: 119px;
+  line-height: 18px;
+  position: absolute;
+  text-align: center;
+  top: 27px;
+  width: 157px;
+}
+
+.bell-timeup {
+  -webkit-animation: bell-toll 1s infinite;
+  background-image: url('../images/bell_64x64.png');
+  background-position: center;
+  height: 64px;
+  left: 24px;
+  position: absolute;
+  top: 3px;
+  -webkit-transform: rotate(+41deg);
+  width: 64px;
+}
+
+.body-time {
+  height: 75px;
+  margin: 0;
+  width: 288px;
+}
+
+.message-time {
+  color: #222;
+  font: 13px arial, sans-serif;
+  left: 87px;
+  position: absolute;
+  text-align: center;
+  top: 27px;
+  width: 180px;
+}
+
+
+.bell-gong {
+  -webkit-animation: bell-gong 1s infinite;
+  background-image: url('../images/gong_16x16.png');
+  background-position: center;
+  height: 16px;
+  left: 24px;
+  position: absolute;
+  top: 48px;
+  -webkit-transform: translateX(+13px);
+  width: 16px;
+}
+
+
+

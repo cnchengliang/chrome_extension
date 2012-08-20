@@ -70,13 +70,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "FileDescription", "This is a npapi plugin built for Chrome on Windows."
-            VALUE "FileOpenName", "Download Helper"
+            VALUE "FileOpenName", "Simple Plugin"
             VALUE "FileVersion", "1, 0, 0, 5"
-            VALUE "InternalName", "download_helper"
-            VALUE "LegalCopyright", "Copyright (C) 2010"
-            VALUE "MIMEType", "application/x-npdownload"
-            VALUE "OriginalFilename", "download_helper.dll"
-            VALUE "ProductName", "Download Helper"
+            VALUE "InternalName", "simple_plugin"
+            VALUE "LegalCopyright", "Copyright (C) 2012"
+            VALUE "MIMEType", "application/simple-plugin"
+            VALUE "OriginalFilename", "simple_plugin.dll"
+            VALUE "ProductName", "simple plugin"
             VALUE "ProductVersion", "1, 0, 0, 5"
         END
     END

@@ -103,6 +103,10 @@ function exportFile(a, b) {
     f.append(b), e(f.getBlob("text/plain;charset=utf-8"), a);
 }
 
+function addNodes(a, b) {
+    for (var c = 0; b && b.length && c < b.length; c++) a.push(b[c]);
+}
+
 (function() {
     function i(a) {
         var b = a.currentTarget || a.srcElement, c, g, h;
@@ -4262,7 +4266,7 @@ function exportFile(a, b) {
 }(), define("text!templates/home/main.html", [], function() {
     return "";
 }), define("text!templates/home/auto_get_content.html", [], function() {
-    return '<div id="dashboard_div" style="position:fixed;z-index:20000;background-color:#fff;bottom: 0%;right:0%;">\n    <table>\n        <tbody>\n            <tr>\n                <td>\n                    获取:\n                </td>\n                <td>\n                    <input type="button" id="get_button" value="获取">\n                </td>\n            </tr>\n            <tr>\n                <td>\n                    行:\n                </td>\n                <td colspan="4">\n                    <textarea id="content_x" style="height:50px;">/html/body/table[4]/tbody/tr[1]/td[2]/table[2]/tbody/tr[2]/td[2]/table/tbody/tr</textarea>\n                </td>\n            </tr>\n            <tr>\n                <tr>\n                    <td>\n                        列:\n                    </td>\n                    <td colspan="4">\n                        <textarea id="content_y" style="height:30px;">/td[2],/td[3]</textarea>\n                    </td>\n                </tr>\n                <tr>\n                    <td>\n                        属性:\n                    </td>\n                    <td>\n                        <textarea id="attr" style="height:30px;">textContent,textContent</textarea>\n                    </td>\n                </tr>\n                <tr>\n                    <td>\n                        结果:\n                    </td>\n                    <td colspan="4">\n                        <textarea id="submit_result" style="height:50px;">\n                        </textarea>\n                    </td>\n                </tr>\n        </tbody>\n    </table>\n</div>\n';
+    return '<style type="text/css">\n<!--\n.chrome_xpath_blue{border: 1px solid blue !important;}\n\ntable.chrome_xpath_table {\n\tmargin: 0 0 0 1px;\n\tborder-color: #36C;\n\tborder-spacing: 0;\n\tclear: right;\n\tborder-collapse: collapse;\n\tline-height: 125%;\n\tfont: 13px/22px \'Open Sans\',arial,sans-serif;\n}\n\ntable.chrome_xpath_table td {\n\tpadding: 6px 12px;\n\tborder: 1px solid #36C;\n\tbackground-color: white;\n\ttext-align: left;\n\tvertical-align: top;\n}\n-->\n</style>\n<div id="dashboard_div" style="position:fixed;z-index:20000;background-color:#fff;bottom: 0%;right:0%;">\n    <table class="chrome_xpath_table">\n        <tbody>\n        \t<tr>\n                <td>\n                    path:\n                </td>\n                <td>\n                    <input type="button" id="get_path" value="click">&nbsp;&nbsp;\n                    <input type="button" id="unget_path" value="unclick">\n                    \n                </td>\n            </tr>\n            <tr>\n                <td>\n                    获取:\n                </td>\n                <td>\n                    <input type="button" id="get_button" value="获取">\n                </td>\n            </tr>\n            <tr>\n                <td>\n                    行:\n                </td>\n                <td colspan="4">\n                    <textarea id="content_x" style="height:50px;"></textarea>\n                </td>\n            </tr>\n            <tr>\n                <tr>\n                    <td>\n                        列:\n                    </td>\n                    <td colspan="4">\n                        <textarea id="content_y" style="height:30px;"></textarea>\n                    </td>\n                </tr>\n                <tr>\n                    <td>\n                        属性:\n                    </td>\n                    <td>\n                        <textarea id="attr" style="height:30px;">textContent</textarea>\n                    </td>\n                </tr>\n                <tr>\n                    <td>\n                        结果:\n                    </td>\n                    <td colspan="4">\n                        <textarea id="submit_result" style="height:50px;">\n                        </textarea>\n                    </td>\n                </tr>\n        </tbody>\n    </table>\n</div>\n';
 }), define("libs/function.common", function() {}), define("views/home/main", [ "jQuery", "Underscore", "Backbone", "collections/home", "text!templates/home/main.html", "text!templates/home/auto_get_content.html", "libs/function.common" ], function(a, b, c, d, e, f) {
     var g = c.View.extend({
         el: a("#page"),
@@ -4270,9 +4274,49 @@ function exportFile(a, b) {
             this.collection = d, this.bind("auto_get_content", this.auto_get_content);
         },
         auto_get_content: function(b) {
-            _this = this, test(), a("body").append(f), a("#get_button").bind("click", function() {
+            _this = this, test(), a("body").append(f), a("#unget_path").bind("click", function(a) {
+                _this.xpath_event(!0);
+            }), a("#get_path").bind("click", function(a) {
+                a.stopPropagation(), _this.xpath_event(!1);
+            }), a("#get_button").bind("click", function() {
                 _this.getContent();
             });
+        },
+        xpath_event: function(b) {
+            var c = this.get_nodes();
+            for (var d = 0; d < c.length; d++) a(c[d]).parents("div#dashboard_div").length == 0 && a(c[d]).attr("id") != "dashboard_div" && c[d].tagName != "BODY" && c[d].tagName != "HTML" && (b == 0 ? (a(c[d]).bind("click", this.xpath_click_handler), a(c[d]).bind("mouseover", this.xpath_mouseover_handler), a(c[d]).bind("mouseout", this.xpath_mouseout_handler)) : (a(c[d]).unbind("click", this.xpath_click_handler), a(c[d]).unbind("mouseover", this.xpath_mouseover_handler), a(c[d]).unbind("mouseout", this.xpath_mouseout_handler)));
+        },
+        xpath_click_handler: function(b) {
+            var c = !0, d = !0, e = !1, f = null, g = !0;
+            b.preventDefault(), b.stopPropagation();
+            var h = this;
+            for (var i = ""; h && h.nodeType == 1; h = h.parentNode) {
+                var j = [], k = h.parentNode.children, l = 0, m = !1;
+                for (var n = 0; k && n < k.length; n++) k[n].tagName == h.tagName && (l++, k[n] == h && (idx = l));
+                idx == 1 && l == 1 && (idx = null), d && h.id && (j[j.length] = "@id='" + h.id + "'", m = !0), e && h.className && (j[j.length] = "@class='" + h.className + "'"), idx = c && idx && !m ? "[" + idx + "]" : "", j = j.length > 0 ? "[" + j.join(" and ") + "]" : "", i = "/" + h.tagName.toLowerCase() + idx + j + i;
+                if (m && g) {
+                    i = "/" + i;
+                    break;
+                }
+            }
+            return f ? f(i) : a("#content_x").val(i), !0;
+        },
+        xpath_mouseover_handler: function(b) {
+            b.preventDefault(), b.stopPropagation(), a(this).parents().map(function() {
+                a(this).removeClass("chrome_xpath_blue");
+            }), a(this).parents("div#dashboard_div").length == 0 && a(this).addClass("chrome_xpath_blue");
+        },
+        xpath_mouseout_handler: function(b) {
+            b.preventDefault(), b.stopPropagation(), a(this).removeClass("chrome_xpath_blue");
+        },
+        get_nodes: function() {
+            var a = [];
+            addNodes(a, document.getElementsByTagName("*"));
+            for (var b = 0; b < a.length; b++) if (a[b].tagName == "IFRAME") {
+                var c = a[b].contentDocument;
+                c && addNodes(a, c.getElementsByTagName("*"));
+            }
+            return a;
         },
         getContent: function() {
             var b = strTrim(a("#content_x").val(), "g"), c = a("#content_y").val().split(","), d = a("#attr").val().split(","), e = function(b) {
@@ -4652,34 +4696,34 @@ function exportFile(a, b) {
         parseInt(a.auto_get_content) && e.auto_get_content();
         if (parseInt(a.download_twitter_enable)) {
             var b = a.download_twitter_tabs, c = a.download_twitter_ports, d = a.selected_tab;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h])
+                    port: parseInt(c[j])
                 }), f.getContent();
                 break;
             }
         }
         if (parseInt(a.go2simple_weibo_enable)) {
-            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, j = a.go2simple_weibo_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.go2simple_weibo_tabs, c = a.go2simple_weibo_ports, d = a.selected_tab, k = a.go2simple_weibo_cdate;
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 f.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: j
+                    port: parseInt(c[j]),
+                    cdate: k
                 }), f.getMyContent();
                 break;
             }
         }
         if (parseInt(a.download_oschina_enable)) {
-            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, j = a.download_oschina_cdate;
-            for (var h = 0; h < b.length; h++) if (b[h] == d && parseInt(c[h]) >= 5500) {
+            var b = a.download_oschina_tabs, c = a.download_oschina_ports, d = a.selected_tab, k = a.download_oschina_cdate;
+            for (var j = 0; j < b.length; j++) if (b[j] == d && parseInt(c[j]) >= 5500) {
                 g.setOptions({
-                    port: parseInt(c[h]),
-                    cdate: j
+                    port: parseInt(c[j]),
+                    cdate: k
                 }), g.getContent();
                 break;
             }
         }
-        i.getContent();
+        a.tool_route == "taobaoTopView_1" ? h.getGoodsData() : a.tool_route == "alexaTopView_1" && i.getContent();
     }, k = function() {
         d.getOption(j);
     };

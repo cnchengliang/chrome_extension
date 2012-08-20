@@ -29,11 +29,11 @@ bool Log::OpenLog(const char* header) {
   char filename[260];
   time_t nowtime = time(NULL);
   struct tm* time_ = localtime(&nowtime);
-  sprintf(filename, "/home/studio/workspace/chrome_plugin_sdk/download_assistant/logs/%s_%d%02d%02d_%d.log",
+  sprintf(filename, "/log/%s_%d%02d%02d_%d.log",
           header, time_->tm_year+1900, time_->tm_mon, time_->tm_mday,
           getpid());
 #endif
-  //file_ = fopen(filename, "a");
+  file_ = fopen(filename, "a");
   if (file_ == NULL)
     return false;
   else
@@ -47,16 +47,12 @@ bool Log::WriteLog(const char* title, const char* contents) {
 
 #ifdef OS_WIN
   GetLocalTime(&time_);
-  if (fprintf(file_, "[%02d:%02d:%02d %03d] [%s] %s\n",
-              time_.wHour, time_.wMinute, time_.wSecond, time_.wMilliseconds,
-              title, contents) > 0) {
+  if (1) {
 #else
   timeval nowtime;
   gettimeofday(&nowtime, NULL);
   struct tm* time_ = localtime(&nowtime.tv_sec);
-  if (fprintf(file_, "[%02d:%02d:%02d %ld] [%s] %s\n",
-              time_->tm_hour, time_->tm_min, time_->tm_sec, nowtime.tv_usec,
-              title, contents) > 0) {
+  if (1) {
 #endif
     fflush(file_);
     return true;

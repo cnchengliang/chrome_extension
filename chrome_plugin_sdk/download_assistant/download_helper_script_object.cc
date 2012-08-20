@@ -477,21 +477,46 @@ std::string get_module_path(void* address=NULL)
         address = (void*)(&get_module_path);
     }
  
+
+#ifdef OS_WIN  
+  
+	HMODULE handle = NULL;
+    BOOL const ret = ::GetModuleHandleExW(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
+        //|GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        static_cast<wchar_t*>(address),
+        &handle);
+ 
+    if (ret != 0 && handle != NULL) {            
+        wchar_t path_buffer[MAX_PATH] = {L'\0'}; 
+        DWORD const ret = ::GetModuleFileNameW(handle, path_buffer, MAX_PATH);
+        // We have to free it
+        ::FreeLibrary(handle);
+        if (0 != ret) {
+			_bstr_t t = path_buffer;
+		    char* pchar = (char*)t;
+		    std::string result = pchar;
+            return result;
+        }
+    }
+
+#elif defined OS_LINUX
+
     ::Dl_info dl_info;
     dl_info.dli_fname = 0;
     int const ret = ::dladdr(address, &dl_info);
     if (0 != ret && dl_info.dli_fname != NULL) {
         return dl_info.dli_fname;
-    }
-    return "";
+    }    
+#endif
+	return "";
 }
 
 
 bool DownloadHelperScriptObject::phantom(const NPVariant *args, uint32_t argCount,
                               NPVariant *result)
 {
-#ifdef OS_LINUX
-  if (argCount < 1)
+  if (argCount < 2)
     return false;
   for (int index = 0; index < argCount; index++)
     if (!NPVARIANT_IS_STRING(args[index]))
@@ -500,17 +525,63 @@ bool DownloadHelperScriptObject::phantom(const NPVariant *args, uint32_t argCoun
   std::string tmp(NPVARIANT_TO_STRING(args[0]).UTF8Characters,
                     NPVARIANT_TO_STRING(args[0]).UTF8Length);  
 
-  int length = tmp.length();
 
-  std::string path = get_module_path();
+  std::string tmp2(NPVARIANT_TO_STRING(args[1]).UTF8Characters,
+                    NPVARIANT_TO_STRING(args[1]).UTF8Length);  
+
+  int length2 = tmp2.length();
+
+  std::string path = get_module_path();  
+
+
+#ifdef OS_WIN
+
+  tmp += ".exe";
+
+  path = path.substr(0,path.find_last_of('\\'));
+  path = path.substr(0,path.find_last_of('\\'));
+
+  utils::Utf8ToUnicode buffer(path.c_str());
+
+  SetCurrentDirectory(buffer);
+
+  //Ìæ»»×ª»»·û
+  while(true)   {     
+	  std::string::size_type   pos(0);     
+    if(   (pos=tmp.find("/"))!=std::string::npos   )     
+        tmp.replace(pos,1,"\\");     
+    else   break;     
+  }
+  /*
+char* copy = (char*)NPN_MemAlloc(path.length() + 1);
+  strcpy(copy, tmp.c_str());
+  STRINGZ_TO_NPVARIANT(copy, *result);return true;*/
+
+  utils::Utf8ToUnicode strOpt("open");
+  utils::Utf8ToUnicode strUpfile(tmp.c_str());
+  utils::Utf8ToUnicode strParam(tmp2.c_str());
+  if(ShellExecute(NULL,strOpt,strUpfile,strParam,NULL,SW_HIDE))
+  {
+	  BOOLEAN_TO_NPVARIANT(true, *result);
+  }/*
+  delete buffer;
+  delete strUpfile;
+  delete strParam;*/
+#elif defined OS_LINUX
   path = path.substr(0,path.find_last_of('/'));
   path = path.substr(0,path.find_last_of('/'));
 
   int chdir_return_value = chdir(path.c_str());
   
+  tmp = tmp + " " + tmp2;
+
+  int length = tmp.length();
+
   char* copy = (char *)NPN_MemAlloc(length + 1);
   memcpy(copy, tmp.c_str(), length);
   copy[length] = 0;
+
+
   FILE* p = popen(copy, "r");
   if (p != NULL) {
   /*

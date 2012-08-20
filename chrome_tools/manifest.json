@@ -1,5 +1,5 @@
 {
-   "background_page": "background.html",
+   "background_page": "views/background.html",
    "browser_action": {
       "default_icon": "res/icon32.png",
 	  "default_title": "__MSG_actionTitle__"
@@ -32,7 +32,7 @@
       "92": "res/icon92.png"
    },
    "name": "My Chrome Tools",
-   "options_page": "options.html",
+   "options_page": "views/options.html",
    "permissions": [ "cookies", "proxy", "tabs", "http://*/*", "https://*/*", "unlimitedStorage", "notifications", "experimental" ],
    "version": "0.1",
    "plugins": [ {
