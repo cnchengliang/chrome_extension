@@ -34,7 +34,7 @@
 
 	function init() {
 		var bg = chrome.extension.getBackgroundPage();
-		var auto_close = parseInt(bg.BG.common.getOption('close_tips'));
+		var auto_close = Number(bg.BG.common.getOption('close_tips'));
 		var title = getParam('title');
 		var msg = getParam('msg');
 

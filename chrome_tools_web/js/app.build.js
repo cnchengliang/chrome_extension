@@ -35,7 +35,7 @@
 	},
 	name: "main",
 	uglify: {
-        beautify: true
+        beautify: false
     },
 	out: "../../main.js"
 })

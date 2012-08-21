@@ -21,7 +21,7 @@ define([
 			{
 				chrome.extension.sendRequest({type:'option',key:'keys'}, 
 					function(response) {
-						if(parseInt(response.result.continue_enable))
+						if(Number(response.result.continue_enable))
 							callback(response.result);
 					}
 				);

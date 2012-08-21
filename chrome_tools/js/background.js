@@ -75,7 +75,7 @@ BG.common.getOption = function(key) {
 		var options = JSON.parse(window.localStorage.getItem('options')) || {};
 		if(key != 'keys')
 		{			
-			ret = options[key];
+			ret = typeof options[key] == 'undefined' ? '':options[key];
 		}else
 		{
 			ret = options;
@@ -538,7 +538,7 @@ BG.common.timer = (function ()
 	Timer.prototype.cancelNotification = function() {
 	  if (this.notificationTimeout) {
 		clearTimeout(this.notificationTimeout);
-		this.notification.cancel();
+		//this.notification.cancel();
 	  }
 	};
 
@@ -635,7 +635,7 @@ BG.common.timer = (function ()
 		this.notify('/views/alert_timeup.html');
 		// Cancel notification and reset timer after 10 sec.
 		this.notificationTimeout = setTimeout(function() {
-		  self.notification.cancel();
+		  //self.notification.cancel();
 		}, NOTIFICATION_DURATION);
 		this.reset();
 	  }
