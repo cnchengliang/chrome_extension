@@ -224,6 +224,22 @@ BG.event.chrome.extension.onRequest = function(){
 			return;
 		}
 
+		if(reqtype == 'phantom')
+		{
+			var phantomjs_param = typeof request.param == 'undefined' ? '':request.param;
+			//var phantomjs_opt = {'url':'http://baidu.com','option':{'route':'other.tool','row_xpath':"//title",'cols':'','attr':'textContent'}};
+			var phantomjs_opt = request.opt;
+			phantomjs_opt.url = phantomjs_opt.url[0];
+			var opt_str = JSON.stringify(phantomjs_opt).replace(/\"/g, '\\"');
+			opt_str = opt_str.replace(/\'/g, "\\'");
+
+			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs" , " js/init.js " + opt_str);
+			//console.log(ret);
+			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  "+phantomjs_param+" js/init.js " + opt_str);
+			sendResponse({result:ret});
+			return;
+		}
+
 		if (reqtype == 'notice') {
 			BG.common.notice(request.title,request.msg);
 			sendResponse({});
@@ -402,14 +418,6 @@ BG.plugin.simple = (function ()
 
 	return plugin;
 })();
-
-
-var phantomjs_opt = {'url':'http://www.baidu.com','option':{'route':'other.tool','row_xpath':"//title",'cols':'','attr':'textContent'}};
-var opt_str = JSON.stringify(phantomjs_opt).replace(/\"/g, '\\"');
-opt_str = opt_str.replace(/\'/g, "\\'");
-
-var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs" , "--output-encoding=utf8 js/init.js " + opt_str);
-console.log(ret);
 
 
 

@@ -121,6 +121,19 @@ define([
 				});				
 			});
 			
+			$('#run_phantom').bind('click', function(){
+				var opt = {};
+				opt.url = JSON.parse($('#phantom_url').val());
+				opt.option = JSON.parse($('#phantom_opt').val());
+				chrome.extension.sendRequest({
+						type:'phantom',
+						opt:opt
+					},
+					function(response) {
+						console.log('result:'+response.result);
+				});				
+			});
+			
         },
         setTabs: function()
 		{
