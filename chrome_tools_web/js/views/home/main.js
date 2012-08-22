@@ -39,6 +39,18 @@ define([
 			$('#get_button').bind('click', function() {	
 				_this.getContent();
 			});
+			$('#save_button').bind('click', function() {	
+				var row_xpath = strTrim($("#content_x").val(),"g");
+				var cols = strTrim($("#content_y").val(),"g");
+				var attr = strTrim($("#attr").val(),"g");
+				chrome.extension.sendRequest({
+						type:'set_mem_phantomjs_opt',
+						url:location.href,
+						opt:{'row_xpath':row_xpath,'cols':cols,'attr':attr}
+					},
+					function(response) {
+				});
+			});
         },
         xpath_event : function (undo)
     	{

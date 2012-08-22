@@ -34,5 +34,8 @@
 		templates: '../templates'
 	},
 	name: "main",
+	uglify: {
+        beautify: false
+    },
 	out: "../../options.js"
 })

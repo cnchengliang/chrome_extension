@@ -143,6 +143,8 @@ var listening = server.listen(port, function (request, response) {
         };
 		response.write('bye~');
 	    response.close();
+	    var fs = require("fs");
+	    fs.remove("data/cookies.txt");
 		phantom.exit();
 	}else if(request.url == '/test')
 	{		
@@ -152,6 +154,16 @@ var listening = server.listen(port, function (request, response) {
         };
 		response.write('test');
 	    response.close();
+	}else if(request.url == '/cookies' && request.method == 'POST')
+	{
+		response.headers = {
+            'Cache': 'no-cache',
+            'Content-Type': 'text/html'
+        };
+		response.write('cookies');
+	    response.close();
+	    write2file("data/cookies.txt",request.post+"\n");	    
+		
 	}else if(request.url == '/route' && request.method == 'POST')
 	{
 		response.headers = {

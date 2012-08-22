@@ -65,7 +65,14 @@ define([
 						},
 						function(response) {
 							console.log(response.result);
-					});	
+					});
+					chrome.extension.sendRequest({
+							type:'set_mem_phantomjs_opt',
+							url:''							
+						},
+						function(response) {
+							
+					});
 				}
 			});
 			$('#show_temp_data').bind('click', function(){
@@ -195,23 +202,32 @@ define([
 		getCookies: function()
 		{
 			url = $('#cookies_url').val();
-			server = url.match(/:\/\/(.[^/:#?]+)/)[1];
-			parts = server.split(".");
-			domain = parts[parts.length - 2] + "." + parts[parts.length -1];
-			if(typeof chrome != "undefined")
+			if(url != '')
 			{
-				chrome.cookies.getAll({}, function(cookies) {
-					var cookies_str = '';
-					cookies_str += '['+domain+']\n';
-					for (var i in cookies) {
-						cookie = cookies[i]; 
-						if (cookie.domain.indexOf(domain) != -1) {
-							//cookies_str += '['+cookie.domain+']\n';
-							cookies_str += cookie.name+'='+cookie.value+'\n';                   
+				server = url.match(/:\/\/(.[^/:#?]+)/)[1];
+				parts = server.split(".");
+				domain = parts[parts.length - 2] + "." + parts[parts.length -1];
+				if(typeof chrome != "undefined")
+				{
+					chrome.cookies.getAll({}, function(cookies) {
+						var cookies_str = '';
+						cookies_str += '['+domain+']\n';
+						for (var i in cookies) {
+							cookie = cookies[i]; 
+							if (cookie.domain.indexOf(domain) != -1) {
+								//cookies_str += '['+cookie.domain+']\n';
+								cookies_str += cookie.name+'='+cookie.value+'\n';                   
+							}
 						}
-					}
-					console.log(cookies_str);
-				});
+						console.log(cookies_str);
+						chrome.extension.sendRequest({
+								type:'send_cookies',
+								data:cookies_str
+							},
+							function(response) {
+						});
+					});
+				}
 			}
 		},
         changed: function (id) {
@@ -235,8 +251,26 @@ define([
         },
         render: function (callback) {
         	_this = this;
-			var template = _.template( optionsTemplate, {options:this.model.attributes} );
-            callback(template, function(){_this.bindEvents();});
+        	var options = _this.model.attributes;
+        	chrome.extension.sendRequest({
+					type:'get_mem_phantomjs_opt',
+				},
+				function(response) {
+					var ret = response.result;
+					if(ret != '')
+					{
+						options.phantomjs_url = JSON.stringify(ret.url);
+						options.phantomjs_opt = JSON.stringify(ret.opt.option);
+					}else
+					{
+						options.phantomjs_url = '["http://www.baidu.com"]';
+						options.phantomjs_opt = '{"route":"other.tool","row_xpath":"//title","cols":"","attr":"textContent"}';
+					}
+					options.phantomjs_url = options.phantomjs_url.replace(/\'/g, "&#039;");
+					options.phantomjs_opt = options.phantomjs_opt.replace(/\'/g, "&#039;");
+					var template = _.template( optionsTemplate, {options:options} );
+		            callback(template, function(){_this.bindEvents();});
+			});			
             
         }
     });

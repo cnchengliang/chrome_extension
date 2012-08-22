@@ -15,7 +15,7 @@ var BG = {
 	init: function(){
 		BG.event.chrome.browserAction.onClicked();
 		BG.event.chrome.extension.onRequest();
-		
+		BG.plugin.simple.init();		
 	},
 	register: function(namespace)
 	{
@@ -229,14 +229,14 @@ BG.event.chrome.extension.onRequest = function(){
 			var phantomjs_param = typeof request.param == 'undefined' ? '':request.param;
 			//var phantomjs_opt = {'url':'http://baidu.com','option':{'route':'other.tool','row_xpath':"//title",'cols':'','attr':'textContent'}};
 			var phantomjs_opt = request.opt;
-			phantomjs_opt.url = phantomjs_opt.url[0];
-			var opt_str = JSON.stringify(phantomjs_opt).replace(/\"/g, '\\"');
-			opt_str = opt_str.replace(/\'/g, "\\'");
-
+			var url = phantomjs_opt.url;
+			delete phantomjs_opt.url;			
 			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs" , " js/init.js " + opt_str);
 			//console.log(ret);
-			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  "+phantomjs_param+" js/init.js " + opt_str);
-			sendResponse({result:ret});
+			BG.memory.phantomjs_opt = {'url':url,'param':phantomjs_param,'opt':phantomjs_opt};
+			BG.plugin.simple.route();
+			
+			sendResponse({result:true});
 			return;
 		}
 
@@ -328,6 +328,42 @@ BG.event.chrome.extension.onRequest = function(){
 			return;
 		}
 
+		if (reqtype == 'set_mem_phantomjs_opt') {
+			if(!BG.memory.phantomjs_opt) BG.memory.phantomjs_opt = {'url':[],'param':'','opt':{'option':{'route':'other.tool','row_xpath':'','cols':'','attr':''}}}
+
+			if(request.url != '')
+			{
+				BG.memory.phantomjs_opt.url[BG.memory.phantomjs_opt.url.length] = request.url;
+			}
+			if(request.param != '')
+			{
+				BG.memory.phantomjs_opt.param.replace(/request.param/g, "");
+				BG.memory.phantomjs_opt.param += " "+request.param;
+			}
+			if(request.opt)
+			{
+				BG.memory.phantomjs_opt.opt.option.row_xpath += BG.memory.phantomjs_opt.opt.option.row_xpath == ''?request.opt.row_xpath:","+request.opt.row_xpath;
+				BG.memory.phantomjs_opt.opt.option.cols += BG.memory.phantomjs_opt.opt.option.cols == ''?request.opt.cols:","+request.opt.cols;
+				BG.memory.phantomjs_opt.opt.option.attr += BG.memory.phantomjs_opt.opt.option.attr == ''?request.opt.attr:","+request.opt.attr;
+			}
+			
+			sendResponse({result:true});
+			return;
+		}
+
+		if (reqtype == 'get_mem_phantomjs_opt') {
+			var phantomjs_opt = '';
+			if(BG.memory.phantomjs_opt) phantomjs_opt= BG.memory.phantomjs_opt;
+			sendResponse({result:phantomjs_opt});
+			return;
+		}
+
+		if (reqtype == 'send_cookies') {
+			if(BG.memory.phantomjs_opt)	BG.plugin.simple.cookies(request.data);
+			sendResponse({result:true});
+			return;
+		}
+
 
 		if(reqtype == 'set_time_up'){
 			var munites = BG.common.getOption('time_up');		
@@ -413,8 +449,68 @@ BG.plugin.simple = (function ()
 	var obj = null;
 	
     var plugin = document.getElementById('simple_pluginId');
-	obj = plugin.CreateObject("simple");
-	if(obj) console.log('initialising simple plugin');
+	//obj = plugin.CreateObject("simple");
+	if(plugin) console.log('initialising simple plugin');
+
+	plugin.route = function() {
+		if(typeof BG.memory.phantomjs_opt == 'undefined') return;
+		var phantomjs_param = BG.memory.phantomjs_opt.param;
+		var opt = BG.memory.phantomjs_opt.opt;
+		if(BG.memory.phantomjs_opt.url.length > 0)
+		{
+			opt.url = BG.memory.phantomjs_opt.url.shift();
+		}else
+		{
+			return;
+		}
+		var opt_str = JSON.stringify(opt);
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', 'http://127.0.0.1:9080/route', true);
+		xhr.responseType = 'text';
+		xhr.onload = function(e) {
+			if (this.status == 200) {
+				console.log(this.response);
+			}else
+			{
+				console.log('phantom onload error');
+			}
+		};
+		xhr.onerror = function() {
+			opt_str = opt_str.replace(/\"/g, '\\"');
+			opt_str = opt_str.replace(/\'/g, "\\'");
+			//--proxy-type=socks5 --proxy=127.0.0.1:1080
+			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no --cookies-file=data/cookies.txt "+phantomjs_param+" js/init.js " + opt_str);
+			//考虑手动关闭函数
+			if(BG.sse.phantom.isListening() == false)
+				BG.sse.phantom.CreateEventSource(9080);
+		};
+		xhr.send(opt_str);
+	}
+
+	plugin.cookies = function(data) {
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', 'http://127.0.0.1:9080/cookies', true);
+		xhr.responseType = 'text';
+		xhr.onload = function(e) {
+			if (this.status == 200) {
+				console.log(this.response);
+			}else
+			{
+				console.log('phantom cookies onload');
+			}
+		};
+		xhr.onerror = function() {
+			console.log('phantom cookies onerror');
+		};
+		xhr.send(data);
+	}
+
+	plugin.init = function()
+	{
+		var xhr = new XMLHttpRequest();
+		xhr.open('GET', 'http://127.0.0.1:9080/exit', true);
+		xhr.send();
+	}
 
 	return plugin;
 })();
@@ -433,9 +529,11 @@ BG.sse.phantom = (function ()
 
 		  var d = new Date();
 		  var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
-document.body.innerHTML += data.sse_result + '<br>';
+
 		  console.log('lastEventID: ' + event.lastEventId +
 				     ', server time: ' + timeStr, 'msg:'+data.sse_result);
+		  BG.common.notice('time:'+timeStr,data.sse_result);
+		  BG.plugin.simple.route();
 		}, false);
 
 		arr_source[port].addEventListener('open', function(event) {
@@ -457,15 +555,17 @@ document.body.innerHTML += data.sse_result + '<br>';
 			src.close();
 		}
 	}
+	function isListening(port)
+	{
+		return typeof arr_source[port] == 'undefined' ? false:true;
+	}
 	return {
 		arr_source:arr_source,
 		CreateEventSource:CreateEventSource,
-		CloseEventSource:CloseEventSource
+		CloseEventSource:CloseEventSource,
+		isListening:isListening
 	};
 })();
-//考虑手动关闭函数
-BG.sse.phantom.CreateEventSource(9080);
-
 
 
 

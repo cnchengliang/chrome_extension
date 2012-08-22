@@ -60,7 +60,7 @@ define([
 		if($('#'+id).length > 0 || $(target).html().replace(/\s/g, "") == '')
 		{			
 			$(target).html('');
-			$("<div id='loading-container'><p id='loading-content'><img id='loading-graphic'  src='images/ajax-loader-trans.gif' />  Loading...</p></div>").appendTo(target);   
+			$("<div id='loading-container'><p id='loading-content'><img id='loading-graphic'  src='/images/ajax-loader-trans.gif' />  Loading...</p></div>").appendTo(target);   
 		} 	
     };
     var AppRouter = Backbone.Router.extend({

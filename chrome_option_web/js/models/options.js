@@ -36,12 +36,14 @@ define([
         	var options = {'continue_enable':1,'auto_get_content':'1','download_twitter_enable':'1','download_oschina_enable':'1','go2simple_weibo_enable':'1'};
 			if(localStorage['options'])
 				options = JSON.parse(localStorage['options']) || {};
+			
 			for(var p in options){
         		if(this.has(p))     		
         		{
         			this.set(p,options[p]);
         		}
         	}
+			
         }
 
     });
