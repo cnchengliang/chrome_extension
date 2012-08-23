@@ -329,8 +329,9 @@ BG.event.chrome.extension.onRequest = function(){
 		}
 
 		if (reqtype == 'set_mem_phantomjs_opt') {
-			if(!BG.memory.phantomjs_opt) BG.memory.phantomjs_opt = {'url':[],'param':'','opt':{'option':{'route':'other.tool','row_xpath':'','cols':'','attr':''}}}
+			if(!BG.memory.phantomjs_opt) BG.memory.phantomjs_opt = {'url':[],'param':'','opt':{'option':{'route':'other.tool','type':'action','result_type':'file','actions':[]}}}
 
+			////div[@id='epfeedlist']/div[@class='MIB_bobar']/div/a[position()>1][contains(@class,'btn_numWidth')]
 			if(request.url != '')
 			{
 				BG.memory.phantomjs_opt.url[BG.memory.phantomjs_opt.url.length] = request.url;
@@ -342,9 +343,8 @@ BG.event.chrome.extension.onRequest = function(){
 			}
 			if(request.opt)
 			{
-				BG.memory.phantomjs_opt.opt.option.row_xpath += BG.memory.phantomjs_opt.opt.option.row_xpath == ''?request.opt.row_xpath:","+request.opt.row_xpath;
-				BG.memory.phantomjs_opt.opt.option.cols += BG.memory.phantomjs_opt.opt.option.cols == ''?request.opt.cols:","+request.opt.cols;
-				BG.memory.phantomjs_opt.opt.option.attr += BG.memory.phantomjs_opt.opt.option.attr == ''?request.opt.attr:","+request.opt.attr;
+				var action = {'action':'auto_get_content','row_xpath':request.opt.row_xpath,'cols':request.opt.cols,'attr':request.opt.attr}
+				BG.memory.phantomjs_opt.opt.option.actions[BG.memory.phantomjs_opt.opt.option.actions.length] = action;
 			}
 			
 			sendResponse({result:true});
@@ -489,7 +489,7 @@ BG.plugin.simple = (function ()
 
 	plugin.cookies = function(data) {
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', 'http://127.0.0.1:9080/cookies', true);
+		xhr.open('POST', 'http://127.0.0.1:9080/write2file', true);
 		xhr.responseType = 'text';
 		xhr.onload = function(e) {
 			if (this.status == 200) {
@@ -502,14 +502,14 @@ BG.plugin.simple = (function ()
 		xhr.onerror = function() {
 			console.log('phantom cookies onerror');
 		};
-		xhr.send(data);
+		var content = JSON.stringify({'filename':'data/cookies.txt','data':data});
+		xhr.send(content);
 	}
 
 	plugin.init = function()
 	{
-		var xhr = new XMLHttpRequest();
-		xhr.open('GET', 'http://127.0.0.1:9080/exit', true);
-		xhr.send();
+		var ret = BG.plugin.simple.phantom("taskkill","  /f /t /im phantomjs.exe ");
+		var ret = BG.plugin.simple.phantom("killall","  -9 phantomjs ");
 	}
 
 	return plugin;

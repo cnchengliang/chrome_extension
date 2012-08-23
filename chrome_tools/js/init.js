@@ -1,11 +1,12 @@
 //python ../pyphantomjs.py --cookies-file=cookies.txt --load-images=no --ignore-ssl-errors=yes init.js taobao.comment
 
-var url = '',params = {},cur_option = {},send;
+var url = '',params = {},cur_option = {},send,cur_action = 0;
 
 if (phantom.args.length === 0) {
     console.log('Try to pass some args when invoking this script!');
     phantom.exit();
 } else {
+	//write2file("data/log.txt",phantom.args[0]+"\n");
 	params = JSON.parse(phantom.args[0]);
 	url = params.url;
 	cur_option = params.option;
@@ -63,6 +64,13 @@ page.onAlert = function (msg) {
      	//phantom.setProxy(proxy[cur]);
      	//console.log('proxy_cur> ' + proxy[cur]);page.open(urls[url_cur]);
     	push(JSON.stringify({'sys_result':'timeout'}));
+     }else if(msg == "action_finished")
+     {
+    	do_action(cur_action);
+     }else if(msg == "action_error")
+     {
+    	do_action(cur_action);
+    	do_log("action_error:" + JSON.stringify(cur_option.action));
      }else if(msg == "quit")
      {/*
      	//第一个站点采集完成后处理
@@ -109,11 +117,7 @@ page.onLoadFinished = function (status) {
     } else if(!loaded){
     	loaded = true;
     	console.log('loading js...');
-		evaluateWithVars(
-			page,
-			function() { document.phantomjs_option = JSON.parse(_VARS_option); },
-			{ "option": JSON.stringify(cur_option) }
-		);
+    	do_action(0);
 		page.injectJs('libs/require/myrequire.js');
 		page.injectJs('main_built.js');
     }
@@ -154,15 +158,16 @@ var listening = server.listen(port, function (request, response) {
         };
 		response.write('test');
 	    response.close();
-	}else if(request.url == '/cookies' && request.method == 'POST')
+	}else if(request.url == '/write2file' && request.method == 'POST')
 	{
 		response.headers = {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('cookies');
+		response.write('write2file');
 	    response.close();
-	    write2file("data/cookies.txt",request.post+"\n");	    
+		content = JSON.parse(request.post);
+	    write2file(content.filename,content.data+"\n");	    
 		
 	}else if(request.url == '/route' && request.method == 'POST')
 	{
@@ -181,11 +186,7 @@ var listening = server.listen(port, function (request, response) {
 			page.open(data.url);
 		}else
 		{
-			evaluateWithVars(
-				page,
-				function() { document.phantomjs_option = JSON.parse(_VARS_option);document.location.hash = '#' + (new Date()).getTime(); },
-				{ "option": JSON.stringify(cur_option) }
-			);
+			do_action(0);
 		}		
 	}else if(request.url == '/result')
 	{
@@ -273,14 +274,20 @@ function push(content,timeout)
 		var myDate = new Date();
 		try {
 			var id = myDate.getTime();
-			send.write("id:"+id+"\ndata:"+escape(content.replace(/\"/g, "\""))+"\n\n");
+			if(cur_option.result_type != 'file')
+			{
+				send.write("id:"+id+"\ndata:"+escape(content.replace(/\"/g, "\""))+"\n\n");
+			}else
+			{
+				send.write("id:"+id+"\ndata:ok\n\n");
+				var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
+				write2file("data/"+filename+".txt",content+"\n");
+			}
 			//console.log('ok');
 			//send.close();
 		}catch (e){
 			//console.log('error');				
-			var timeStr = myDate.getFullYear() + '-' + fillZero(myDate.getMonth() + 1) + '-' + fillZero(myDate.getDate()) + ' ' + fillZero(myDate.getHours()) + ':' + fillZero(myDate.getMinutes()) + ':' + fillZero(myDate.getSeconds());
-			var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
-			write2file("log/"+filename+".txt",timeStr + '    ' + content+"\n");
+			do_log(content);
 		}
 	}else
 	{
@@ -289,6 +296,31 @@ function push(content,timeout)
 			setTimeout(function(){push(content,true);},3000); 
 		}
 	}
+}
+
+function do_action(cur)
+{	
+	//执行系列操作
+	if(cur_option.type == 'action' && toString.apply(cur_option.actions) === '[object Array]' && cur_option.actions.length > 0)
+	{
+		cur_action = cur;
+		if(cur_action == cur_option.actions.length) return;
+		cur_option.action = cur_option.actions[cur_action];
+		cur_action++;
+	}
+
+	evaluateWithVars(
+		page,
+		function() { document.phantomjs_option = JSON.parse(_VARS_option);document.location.hash = '#' + (new Date()).getTime() + Math.floor(Math.random()*10+1); },
+		{ "option": JSON.stringify(cur_option) }
+	);
+}
+
+function do_log(content)
+{
+	var timeStr = myDate.getFullYear() + '-' + fillZero(myDate.getMonth() + 1) + '-' + fillZero(myDate.getDate()) + ' ' + fillZero(myDate.getHours()) + ':' + fillZero(myDate.getMinutes()) + ':' + fillZero(myDate.getSeconds());
+	var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
+	write2file("log/"+filename+".txt",timeStr + '    ' + content+"\n");
 }
 /*
 "{\"url\":\"http://www.baidu.com\",\"option\":{\"route\":\"other.tool\",\"row_xpath\":\"//title\",\"cols\":\"\",\"attr\":\"textContent\"}}"
