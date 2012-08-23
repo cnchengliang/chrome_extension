@@ -40,9 +40,6 @@ define([
 				_this.getCookies();
 			});
 
-			$('#get_cookies').bind('click', function() {
-				_this.getCookies();
-			});
 			$('#clear_temp_data').bind('click', function(){
 				if(typeof chrome != "undefined")
 				{
@@ -264,7 +261,7 @@ define([
 					}else
 					{
 						options.phantomjs_url = '["http://www.baidu.com"]';
-						options.phantomjs_opt = '{"route":"other.tool","row_xpath":"//title","cols":"","attr":"textContent"}';
+						options.phantomjs_opt = '{"route":"other.tool","type":"action","result_type":"file","actions":[{"action":"auto_get_content","row_xpath":"//title","cols":"","attr":"textContent"},{"action":"auto_click","xpath":"//p[@id=\'nv\']/a[3]"}]}';
 					}
 					options.phantomjs_url = options.phantomjs_url.replace(/\'/g, "&#039;");
 					options.phantomjs_opt = options.phantomjs_opt.replace(/\'/g, "&#039;");
