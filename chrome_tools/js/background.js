@@ -93,6 +93,14 @@ BG.common.setOption = function(key,val)
     window.localStorage.setItem('options', JSON.stringify(options));
 };
 
+
+BG.common.md5 = function(text)
+{
+	var hash = CryptoJS.MD5(text);
+	//console.log(hash.toString());
+	return hash.toString();
+}
+
 //html5数据库：添加、更新、查询、删除
 //数据库地址：win7下是C:\Users\root\AppData\Local\simple-web\+(网址如http_content.businessvalue.com.cn_0)
 //可以用SQLiteSpy打开查看
@@ -525,15 +533,20 @@ BG.sse.phantom = (function ()
 		// sse.php sends messages with text/event-stream mimetype.
 		arr_source[port] = new EventSource('http://127.0.0.1:'+port+'/result');		
 		arr_source[port].addEventListener('message', function(event) {
-		  var data = JSON.parse(unescape(event.data));
+		  try
+		  {
+			  var data = JSON.parse(unescape(event.data));
 
-		  var d = new Date();
-		  var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
+			  var d = new Date();
+			  var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
 
-		  console.log('lastEventID: ' + event.lastEventId +
-				     ', server time: ' + timeStr, 'msg:'+data.sse_result);
-		  BG.common.notice('time:'+timeStr,data.sse_result);
-		  BG.plugin.simple.route();
+			  console.log('lastEventID: ' + event.lastEventId +
+						 ', server time: ' + timeStr, 'msg:'+data.sse_result);
+			  BG.common.notice('time:'+timeStr,data.sse_result);
+		  } catch (e) {
+			console.log('sse error');
+		  }
+		  BG.plugin.simple.route();		  
 		}, false);
 
 		arr_source[port].addEventListener('open', function(event) {
@@ -759,3 +772,14 @@ BG.common.timer = (function ()
 BG.init();
 //C:\Users\root\Desktop\beta\chrome>C:\Users\root\AppData\Local\Google\Chrome\Application\chrome.exe --pack-extension=C:\Users\root\Desktop\beta\chrome\chrome_tools --pack-extension-key=C:\Users\root\Desktop\beta\chrome\chrome_tools.pem
 
+
+//{"route":"other.tool","type":"action","result_type":"file2","actions":[{"action":"auto_get_content","row_xpath":"//title,//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[2]/td[2]/font[1],//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[3]/td[2]/img,//div[@id='lymain_left']/table/tbody/tr[7]/td/table/tbody/tr[5]/td/span,//div[@id='lymain_left']/table/tbody/tr[9]/td[2]/table[1]/tbody/tr[2]/td/table/tbody/tr[1]/td[1]/p/span","cols":",,,,","attr":"textContent,textContent,src,textContent,textContent"}]}
+
+//console.log(BG.common.md5("http://www.zhangjiajie.com/line/changshayiriyou_222.html"));
+
+
+//详细报价
+////div[@id='lymain_left']/table/tbody/tr[12]/td[2]/form/table/tbody/tr[2]/td/table
+
+//服务内容
+////div[@id='lymain_left']/table/tbody/tr[15]/td[2]/table

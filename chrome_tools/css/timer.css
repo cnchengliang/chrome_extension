@@ -61,5 +61,40 @@ img {
   width: 16px;
 }
 
+@-webkit-keyframes bell-toll {
+  0% {
+    -webkit-transform: rotate(+41deg);
+  }
+  30% {
+    -webkit-transform: rotate(-40deg);
+  }
+  50% {
+    -webkit-transform: rotate(-41deg);
+  }
+  80% {
+    -webkit-transform: rotate(+40deg);
+  }
+  100% {
+    -webkit-transform: rotate(+41deg);
+  }
+}
+
+@-webkit-keyframes bell-gong {
+  0% {
+    -webkit-transform: translateX(+13px);
+  }
+  30% {
+    -webkit-transform: translateX(-13px);
+  }
+  50% {
+    -webkit-transform: translateX(-13px);
+  }
+  80% {
+    -webkit-transform: translateX(+13px);
+  }
+  100% {
+    -webkit-transform: translateX(+13px);
+  }
+}
 
 
