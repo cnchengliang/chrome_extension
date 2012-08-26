@@ -58,6 +58,10 @@ BG.register("BG.common.timer");
 BG.event.chrome.browserAction.onClicked = function()
 {
 	chrome.browserAction.onClicked.addListener(function (tab) {
+		chrome.tabs.create({"url":"/views/options.html","selected":true},function(tab){
+			
+		});
+	/*
 		var ret = BG.common.getOption('continue_enable');
 		if(ret == true)
 		{
@@ -66,8 +70,8 @@ BG.event.chrome.browserAction.onClicked = function()
 		{
 			BG.common.setOption("continue_enable",true);
 			chrome.tabs.executeScript(tab.id, {code: 'browserActionClicked()'});
-		}	
-	})
+		}	*/
+	});
 };
 BG.common.getOption = function(key) {
 	var ret;
@@ -243,7 +247,7 @@ BG.event.chrome.extension.onRequest = function(){
 			//console.log(ret);
 			BG.memory.phantomjs_opt = {'url':url,'param':phantomjs_param,'opt':phantomjs_opt};
 			BG.plugin.simple.route();
-			
+
 			sendResponse({result:true});
 			return;
 		}
@@ -533,20 +537,28 @@ BG.sse.phantom = (function ()
 		// sse.php sends messages with text/event-stream mimetype.
 		arr_source[port] = new EventSource('http://127.0.0.1:'+port+'/result');		
 		arr_source[port].addEventListener('message', function(event) {
-		  try
-		  {
-			  var data = JSON.parse(unescape(event.data));
+			try
+			{
+				var data = JSON.parse(unescape(event.data));
 
-			  var d = new Date();
-			  var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
+				var d = new Date();
+				var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
 
-			  console.log('lastEventID: ' + event.lastEventId +
+				console.log('lastEventID: ' + event.lastEventId +
 						 ', server time: ' + timeStr, 'msg:'+data.sse_result);
-			  BG.common.notice('time:'+timeStr,data.sse_result);
-		  } catch (e) {
-			console.log('sse error');
-		  }
-		  BG.plugin.simple.route();		  
+				
+				if(BG.memory.phantomjs_opt.opt.option.result_type == 'api')
+				{
+					BG.common.sendForm('http://127.0.0.1/php_tools/slim/import_web_content',JSON.stringify(data.sse_result));
+				}
+				else
+				{
+					BG.common.notice('time:'+timeStr,data.sse_result);
+				}
+			} catch (e) {
+				console.log('sse error');
+			}
+			BG.plugin.simple.route();
 		}, false);
 
 		arr_source[port].addEventListener('open', function(event) {
@@ -767,19 +779,45 @@ BG.common.timer = (function ()
 })();
 
 
+BG.common.sendForm = function(url,data) {
+	var formData = new FormData();
+	formData.append('data', data);
+
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', url, true);
+	xhr.responseType = 'text';
+	xhr.onload = function(e) {
+		if (this.status == 200) {
+			console.log(this.response);
+		}else
+		{
+			console.log('sendForm onload error');
+		}
+	};
+	xhr.onerror = function() {
+		console.log('sendForm onerror');
+	};
+
+	xhr.send(formData);
+}
+
 
 
 BG.init();
 //C:\Users\root\Desktop\beta\chrome>C:\Users\root\AppData\Local\Google\Chrome\Application\chrome.exe --pack-extension=C:\Users\root\Desktop\beta\chrome\chrome_tools --pack-extension-key=C:\Users\root\Desktop\beta\chrome\chrome_tools.pem
 
-
-//{"route":"other.tool","type":"action","result_type":"file2","actions":[{"action":"auto_get_content","row_xpath":"//title,//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[2]/td[2]/font[1],//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[3]/td[2]/img,//div[@id='lymain_left']/table/tbody/tr[7]/td/table/tbody/tr[5]/td/span,//div[@id='lymain_left']/table/tbody/tr[9]/td[2]/table[1]/tbody/tr[2]/td/table/tbody/tr[1]/td[1]/p/span","cols":",,,,","attr":"textContent,textContent,src,textContent,textContent"}]}
+//景点介绍、详细报价、
+//{"route":"other.tool","type":"action","result_type":"api","actions":[{"action":"auto_get_content","row_xpath":"//title,//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[2]/td[2]/font[1],//div[@id='lymain_left']/table/tbody/tr[3]/td/table/tbody/tr[3]/td[2]/img,//div[@id='lymain_left']/table/tbody/tr[7]/td/table/tbody/tr[4]/td,//div[@id='lymain_left']/table/tbody/tr[7]/td/table/tbody/tr[5]/td/span,//div[@id='lymain_left']/table/tbody/tr[12]/td[2]/form/table/tbody/tr[2]/td/table,//div[@id='lymain_left']/table/tbody/tr[15]/td[2]/table","cols":",,,,,,","attr":"textContent,textContent,src,textContent,textContent,innerHTML,innerHTML"}]}
 
 //console.log(BG.common.md5("http://www.zhangjiajie.com/line/changshayiriyou_222.html"));
 
 
-//详细报价
-////div[@id='lymain_left']/table/tbody/tr[12]/td[2]/form/table/tbody/tr[2]/td/table
+//行程安排
+//{"route":"other.tool","type":"action","result_type":"api","actions":[{"action":"auto_get_content","row_xpath":"//div[@id='lymain_left']/table/tbody/tr[9]/td[2]/table","cols":"/tbody/tr[2]/td/table/tbody/tr[1]/td[1]/p/span,/tbody/tr[2]/td/table/tbody/tr[1]/td[2]/span,/tbody/tr[2]/td/table/tbody/tr[2]/td,/tbody/tr[3]/td[2]/p/b,/tbody/tr[4]/td[2]/p/span,/tbody/tr[5]/td[2]/p/b,/tbody/tr[6]/td[2]/p/span,/tbody/tr[7]/td[2]/p/b,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[1]/table/tbody/tr[2]/td,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[3]/table/tbody/tr[2]/td,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[1]/table/tbody/tr[1]/td/a/img,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[3]/table/tbody/tr[1]/td/a/img","attr":"textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,src,src"}]}
+////div[@id='lymain_left']/table/tbody/tr[9]/td[2]/table
+///tbody/tr[2]/td/table/tbody/tr[1]/td[1]/p/span,/tbody/tr[2]/td/table/tbody/tr[1]/td[2]/span,/tbody/tr[2]/td/table/tbody/tr[2]/td,/tbody/tr[3]/td[2]/p/b,/tbody/tr[4]/td[2]/p/span,/tbody/tr[5]/td[2]/p/b,/tbody/tr[6]/td[2]/p/span,/tbody/tr[7]/td[2]/p/b,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[1]/table/tbody/tr[2]/td,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[3]/table/tbody/tr[2]/td,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[1]/table/tbody/tr[1]/td/a/img,/tbody/tr[8]/td[2]/div/table/tbody/tr/td[3]/table/tbody/tr[1]/td/a/img
+//textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,textContent,src,src
 
-//服务内容
-////div[@id='lymain_left']/table/tbody/tr[15]/td[2]/table
+
+//["http://127.0.0.1/php_tools/slim/data/0a25c0737b9f4c01ad57459821446278.html"]
+
