@@ -29,6 +29,14 @@ var server = require('webserver').create();
 page.settings.userAgent = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.63 Safari/535.7';
 var loaded = false;
 
+//错误提示
+page.onError = function (msg, trace) {
+    console.log(msg);
+    trace.forEach(function(item) {
+        console.log('  ', item.file, ':', item.line);
+    });
+}
+
 //消息提示console
 page.onConsoleMessage = function (msg, line, source) {
 	var content = msg;
@@ -52,6 +60,7 @@ page.onConsoleMessage = function (msg, line, source) {
 	}else
 	{
 		console.log('console> ' + content);
+		//write2file("data/log.txt",content+"\n");
 	}
 };
 
@@ -106,7 +115,7 @@ var evaluateWithVars = function(page, func, vars)
 				fstr = fstr.replace("_VARS_"+v, vars[v]);
 		}
 	}
-	return page.evaluate(fstr)
+	return page.evaluate(fstr);
 }
 
 page.onLoadFinished = function (status) {
@@ -121,6 +130,11 @@ page.onLoadFinished = function (status) {
 		page.injectJs('libs/require/myrequire.js');
 		page.injectJs('main_built.js');
     }
+    /*
+    var title = page.evaluate(function () {
+        return document.title;
+    });
+    console.log('Page title is ' + title);*/
 };
 
 page.onInitialized = function () {
@@ -256,6 +270,7 @@ function write2file(filename,content)
 		f = fs.open(filename, "a+");
 		f.write(content);
 		f.close();
+		console.log('write2file:'+filename);
 	} catch (e) {
 		console.log(e);
 	}
@@ -281,7 +296,18 @@ function push(content,timeout)
 			{
 				send.write("id:"+id+"\ndata:ok\n\n");
 				var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
-				write2file("data/"+filename+".txt",content+"\n");
+				
+				var tmp = '',data = JSON.parse(content).sse_result;
+				for(var i=0,n=data.length;i<n;i++)
+				{
+					for(var j=0,m=data[i].length;j<m;j++)
+					{
+						tmp += data[i][j] + ',';
+					}
+					tmp += '\n';
+				}
+				write2file("data/"+filename+".txt",tmp+"\n");
+				//do_log(JSON.stringify(cur_option));
 			}
 			//console.log('ok');
 			//send.close();
@@ -318,12 +344,13 @@ function do_action(cur)
 
 function do_log(content)
 {
+	var myDate = new Date();
 	var timeStr = myDate.getFullYear() + '-' + fillZero(myDate.getMonth() + 1) + '-' + fillZero(myDate.getDate()) + ' ' + fillZero(myDate.getHours()) + ':' + fillZero(myDate.getMinutes()) + ':' + fillZero(myDate.getSeconds());
 	var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
 	write2file("log/"+filename+".txt",timeStr + '    ' + content+"\n");
 }
 /*
-"{\"url\":\"http://www.baidu.com\",\"option\":{\"route\":\"other.tool\",\"row_xpath\":\"//title\",\"cols\":\"\",\"attr\":\"textContent\"}}"
+"{\"url\":\"http://www.baidu.com\",\"option\":{\"route\":\"other.tool\",\"type\":\"action\",\"result_type\":\"file\",\"actions\":[{\"action\":\"auto_get_content\",\"row_xpath\":\"//title\",\"cols\":\"\",\"attr\":\"textContent\"}]}}"
 
 document.write('<script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>');
 var data = {'option':{'route':'other.tool','row_xpath':"//p[@id='lk']/a[3]",'cols':'','attr':'textContent'}};

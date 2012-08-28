@@ -89,12 +89,23 @@ function getRows(args,fn)
 			var colStr = [];
 			for(var j=0, n=cols.length;j<n;j++)
 			{
-				var args = [row_xpath,"["+i+"]",strTrim(cols[j],"g"),strTrim(attr[j],"g")];
-				var tmp = getNodeDetail(args);
-				if(typeof tmp == 'undefined' || tmp == 'null')
-					colStr[colStr.length] = getNodeAttr(args);
-				else
-					colStr[colStr.length] = tmp;
+				if(strTrim(cols[j],"g") != '')
+				{
+					var args = [row_xpath,"["+i+"]",strTrim(cols[j],"g"),strTrim(attr[j],"g")];
+					var tmp = getNodeDetail(args);
+					if(typeof tmp == 'undefined' || tmp == 'null')
+						colStr[colStr.length] = getNodeAttr(args);
+					else
+						colStr[colStr.length] = tmp;
+				}else
+				{
+					var tmp_attr = strTrim(attr[j],"g");
+					var tmp = result.snapshotItem(i-1)[tmp_attr];
+					if(typeof tmp == 'undefined')
+						colStr[colStr.length] = 'null';
+					else
+						colStr[colStr.length] = tmp;
+				}
 				colStr[colStr.length-1] = colStr[colStr.length-1].replace(/[\r\t\n]/g, "");
 			}						
 			arrStr[arrStr.length] = colStr;
