@@ -15,7 +15,7 @@ var BG = {
 	init: function(){
 		BG.event.chrome.browserAction.onClicked();
 		BG.event.chrome.extension.onRequest();
-		BG.plugin.simple.init();		
+		BG.plugin.simple.init();
 	},
 	register: function(namespace)
 	{
@@ -471,30 +471,39 @@ BG.plugin.simple = (function ()
 		if(BG.memory.phantomjs_opt.url.length > 0)
 		{
 			opt.url = BG.memory.phantomjs_opt.url.shift();
+			console.log(opt.url);
 		}else
 		{
+			BG.sse.phantom.stopCount(9080);
+			BG.common.sendForm('GET','http://127.0.0.1:9080/reset','');
 			return;
 		}
-		var opt_str = JSON.stringify(opt);
+		var opt_str = escape(JSON.stringify(opt));
 		var xhr = new XMLHttpRequest();
 		xhr.open('POST', 'http://127.0.0.1:9080/route', true);
-		xhr.responseType = 'text';
+		xhr.responseType = 'text';		
+		var run = function() {
+			//opt_str = opt_str.replace(/\"/g, '\\"');
+			//opt_str = opt_str.replace(/\'/g, "\\'");
+			//--proxy-type=socks5 --proxy=127.0.0.1:1080
+			BG.common.notice('run phantomjs:','');
+			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no "+phantomjs_param+" js/init.js " + opt_str);
+			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no --cookies-file=data/cookies.txt "+phantomjs_param+" js/init.js " + opt_str);
+			//考虑手动关闭函数
+			BG.sse.phantom.CloseEventSource(9080);
+			setTimeout(function(){if(BG.sse.phantom.isListening() == false)	BG.sse.phantom.CreateEventSource(9080);},1000); 
+				
+		};
+		xhr.onerror = run;
 		xhr.onload = function(e) {
 			if (this.status == 200) {
 				console.log(this.response);
+				
 			}else
 			{
 				console.log('phantom onload error');
+				run();
 			}
-		};
-		xhr.onerror = function() {
-			opt_str = opt_str.replace(/\"/g, '\\"');
-			opt_str = opt_str.replace(/\'/g, "\\'");
-			//--proxy-type=socks5 --proxy=127.0.0.1:1080
-			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no --cookies-file=data/cookies.txt "+phantomjs_param+" js/init.js " + opt_str);
-			//考虑手动关闭函数
-			if(BG.sse.phantom.isListening() == false)
-				BG.sse.phantom.CreateEventSource(9080);
 		};
 		xhr.send(opt_str);
 	}
@@ -520,8 +529,11 @@ BG.plugin.simple = (function ()
 
 	plugin.init = function()
 	{
-		var ret = BG.plugin.simple.phantom("taskkill","  /f /t /im phantomjs.exe ");
-		var ret = BG.plugin.simple.phantom("killall","  -9 phantomjs ");
+		BG.common.notice('init phantomjs:','');
+
+		var ret = BG.plugin.simple.phantom("cmd"," /c for /f \"tokens=5\" %i in (\'netstat -aon^|findstr \"0.0.0.0:9080\"\') do @taskkill /F /PID %i");
+		//"taskkill","  /f /t /im phantomjs.exe "
+		var ret = BG.plugin.simple.phantom("kill","  -9 $(lsof -i:9080 | grep '9080' | awk '{print $2}') ");
 	}
 
 	return plugin;
@@ -532,33 +544,71 @@ BG.plugin.simple = (function ()
 BG.sse.phantom = (function () 
 {
 	var arr_source = [];
+	var arr_num = [];
+	var arr_timer = [];
+	var countdown = [];
+	var fns = [];
+	function tick(port) {
+		if (countdown[port]) {
+			clearInterval(countdown[port]);
+		}
+		countdown[port] = setInterval(function() {
+			if (fns[port]) {
+				fns[port]();
+			}
+		}, 1000);
+	}
 	function CreateEventSource(port)
 	{
+		arr_num[port] = 0;
+		arr_timer[port] = 0;
+		tick(port);
 		// sse.php sends messages with text/event-stream mimetype.
 		arr_source[port] = new EventSource('http://127.0.0.1:'+port+'/result');		
-		arr_source[port].addEventListener('message', function(event) {
+		arr_source[port].addEventListener('message', function(event) {			
+			var d = new Date();
+			arr_timer[port] = d;//10秒之后
+			fns[port] = function(){
+				var now = new Date();
+				if(now - arr_timer[port] >=10*1000)
+				{
+					BG.common.notice('EventSource:'+port,'timeout');
+					console.log('EventSource:'+port,'timeout');					
+					BG.plugin.simple.init();					
+					arr_num[port] = 0;
+					setTimeout(function(){BG.plugin.simple.route();},3000);
+					BG.sse.phantom.CloseEventSource(port);
+				}
+			};
+			var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
+
+			console.log('lastEventID: ' + event.lastEventId +
+					 ', server time: ' + timeStr, 'msg:'+event.data);
 			try
 			{
-				var data = JSON.parse(unescape(event.data));
 
-				var d = new Date();
-				var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
-
-				console.log('lastEventID: ' + event.lastEventId +
-						 ', server time: ' + timeStr, 'msg:'+data.sse_result);
-				
-				if(BG.memory.phantomjs_opt.opt.option.result_type == 'api')
+				if(event.data.indexOf("sse_result") != -1)
 				{
-					BG.common.sendForm('http://127.0.0.1/php_tools/slim/import_web_content',JSON.stringify(data.sse_result));
-				}
-				else
-				{
-					BG.common.notice('time:'+timeStr,data.sse_result);
+					var data = JSON.parse(unescape(event.data));
+					if(BG.memory.phantomjs_opt.opt.option.result_type == 'api')
+					{
+						BG.common.sendForm('POST','http://127.0.0.1/php_tools/slim/import_web_content',JSON.stringify(data.sse_result));
+					}
+					else if(BG.memory.phantomjs_opt.opt.option.result_type == 'notice')
+					{
+						BG.common.notice('time:'+timeStr,data.sse_result);
+					}
 				}
 			} catch (e) {
 				console.log('sse error');
 			}
-			BG.plugin.simple.route();
+			arr_num[port]++;
+			if(arr_num[port] >= 5 || event.data.indexOf("sys_result") != -1)
+			{
+				BG.plugin.simple.route();
+				arr_num[port] = 0;
+			}
+			
 		}, false);
 
 		arr_source[port].addEventListener('open', function(event) {
@@ -568,6 +618,8 @@ BG.sse.phantom = (function ()
 		arr_source[port].addEventListener('error', function(event) {
 		  if (event.eventPhase == 2) { //EventSource.CLOSED
 			console.log('> Connection was closed');
+			//BG.sse.phantom.CloseEventSource(port);
+			
 		  }
 		}, false);
 	}
@@ -575,9 +627,17 @@ BG.sse.phantom = (function ()
 	{
 		var src = arr_source[port];
 		if(src)
-		{			
+		{
+			clearInterval(countdown[port]);
 			arr_source.remove(port);
-			src.close();
+			src.close();			
+		}
+	}
+	function stopCount(port)
+	{
+		if(fns[port])
+		{
+			fns[port] = false;
 		}
 	}
 	function isListening(port)
@@ -588,7 +648,8 @@ BG.sse.phantom = (function ()
 		arr_source:arr_source,
 		CreateEventSource:CreateEventSource,
 		CloseEventSource:CloseEventSource,
-		isListening:isListening
+		isListening:isListening,
+		stopCount:stopCount
 	};
 })();
 
@@ -779,12 +840,12 @@ BG.common.timer = (function ()
 })();
 
 
-BG.common.sendForm = function(url,data) {
+BG.common.sendForm = function(action,url,data) {
 	var formData = new FormData();
 	formData.append('data', data);
 
 	var xhr = new XMLHttpRequest();
-	xhr.open('POST', url, true);
+	xhr.open(action, url, true);
 	xhr.responseType = 'text';
 	xhr.onload = function(e) {
 		if (this.status == 200) {

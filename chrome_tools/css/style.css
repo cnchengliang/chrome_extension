@@ -608,3 +608,12 @@ legend {font-size: 14px !important;}
 #loading-content {text-align:center; line-height: 100px;font-size:18px;}
 
 #table_result .radio{display:inline-block;}
+
+
+fieldset div.row-fluid {
+	padding-top: 20px;
+}
+
+.row-fluid > [class*="span"] {
+margin-left: 0;
+}

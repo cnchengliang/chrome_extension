@@ -1,15 +1,15 @@
 //python ../pyphantomjs.py --cookies-file=cookies.txt --load-images=no --ignore-ssl-errors=yes init.js taobao.comment
 
-var url = '',params = {},cur_option = {},send,cur_action = 0;
+var url = '',params = {},next_option = {},cur_option = {},send,cur_action = 0;
 
 if (phantom.args.length === 0) {
     console.log('Try to pass some args when invoking this script!');
     phantom.exit();
 } else {
-	//write2file("data/log.txt",phantom.args[0]+"\n");
-	params = JSON.parse(phantom.args[0]);
+	//write2file("data/log.txt",unescape(phantom.args[0])+"\n");
+	params = JSON.parse(unescape(phantom.args[0]));
 	url = params.url;
-	cur_option = params.option;
+	next_option = params.option;
 }
 
 /*
@@ -31,7 +31,7 @@ var loaded = false;
 
 //错误提示
 page.onError = function (msg, trace) {
-    console.log(msg);
+    console.log('error> ' + msg);
     trace.forEach(function(item) {
         console.log('  ', item.file, ':', item.line);
     });
@@ -66,7 +66,10 @@ page.onConsoleMessage = function (msg, line, source) {
 
 //alert
 page.onAlert = function (msg) {
-     if(msg.indexOf('timeout') != -1)
+     if(msg.indexOf("sse_result") != -1)
+	 {
+		push(msg);
+	 }else if(msg.indexOf('timeout') != -1)
      {
      	//proxy_cur++;
      	//var cur = proxy_cur%proxy.length;
@@ -75,10 +78,10 @@ page.onAlert = function (msg) {
     	push(JSON.stringify({'sys_result':'timeout'}));
      }else if(msg == "action_finished")
      {
-    	do_action(cur_action);
+    	//do_action(cur_action);
      }else if(msg == "action_error")
      {
-    	do_action(cur_action);
+    	push(JSON.stringify({'sys_result':'action_error'}));
     	do_log("action_error:" + JSON.stringify(cur_option.action));
      }else if(msg == "quit")
      {/*
@@ -97,6 +100,8 @@ page.onAlert = function (msg) {
      }else
      {
      	console.log(msg);
+    	push(JSON.stringify({'sys_result':'alert_other'}));
+    	do_log("action_other:" + JSON.stringify(cur_option.action));
      }
  };
 
@@ -121,11 +126,12 @@ var evaluateWithVars = function(page, func, vars)
 page.onLoadFinished = function (status) {
     console.log('status :'+status);
 	if (status !== 'success') {
-        //console.log('Unable to access network');
-        //phantom.exit();
+        do_log('Unable to access network:'+url);
+        phantom.exit();       
     } else if(!loaded){
     	loaded = true;
     	console.log('loading js...');
+    	cur_option = next_option;
     	do_action(0);
 		page.injectJs('libs/require/myrequire.js');
 		page.injectJs('main_built.js');
@@ -191,17 +197,40 @@ var listening = server.listen(port, function (request, response) {
         };
 		response.write('route');
 	    response.close();
-	    
-	    
-		data = JSON.parse(request.post);
-		cur_option = data.option?data.option:cur_option;
-		if(data.url)
-		{			
-			page.open(data.url);
-		}else
-		{
-			do_action(0);
-		}		
+
+		
+	    try{
+			//write2file("data/log.txt",unescape(request.post)+"\n");
+			data = JSON.parse(unescape(request.post));
+			cur_option = {};
+			if(data.url)
+			{
+				url = data.url;
+				evaluateWithVars(
+					page,
+					function() { document.location.href = _VARS_url; },
+					{ "url": url }
+				);
+				next_option = data.option;
+			}else
+			{
+				cur_option = data.option?data.option:cur_option;
+				do_action(0);
+			}
+		}catch (e){
+			//console.log('error');				
+			do_log(request.post);
+		}
+	}else if(request.url == '/reset')
+	{
+		response.headers = {
+            'Cache': 'no-cache',
+            'Content-Type': 'text/html'
+        };
+		response.write('reset');
+	    response.close();
+	    next_option = {};
+	    cur_option = {};
 	}else if(request.url == '/result')
 	{
 		response.headers = {"Cache": "no-cache", "Content-Type": "text/event-stream;"};
@@ -282,14 +311,18 @@ function fillZero(v)
 	return v;
 }
 
-function push(content,timeout)
+function push(content,timeout,fn)
 {
 	if(send)
 	{
 		var myDate = new Date();
 		try {
 			var id = myDate.getTime();
-			if(cur_option.result_type != 'file')
+			if(content.indexOf("sys_result") != -1)
+			{
+				send.write("id:"+id+"\ndata:"+escape(content.replace(/\"/g, "\""))+"\n\n");
+			}
+			else if(cur_option.result_type != 'file')
 			{
 				send.write("id:"+id+"\ndata:"+escape(content.replace(/\"/g, "\""))+"\n\n");
 			}else
@@ -297,7 +330,7 @@ function push(content,timeout)
 				send.write("id:"+id+"\ndata:ok\n\n");
 				var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
 				
-				var tmp = '',data = JSON.parse(content).sse_result;
+				var tmp = url+',',data = JSON.parse(content).sse_result;
 				for(var i=0,n=data.length;i<n;i++)
 				{
 					for(var j=0,m=data[i].length;j<m;j++)
@@ -315,8 +348,11 @@ function push(content,timeout)
 			//console.log('error');				
 			do_log(content);
 		}
+		do_action(cur_action);
+		if(fn) fn();
 	}else
 	{
+		do_log('send object:'+send);
 		if(!timeout)
 		{
 			setTimeout(function(){push(content,true);},3000); 
@@ -333,6 +369,9 @@ function do_action(cur)
 		if(cur_action == cur_option.actions.length) return;
 		cur_option.action = cur_option.actions[cur_action];
 		cur_action++;
+	}else
+	{
+		cur_option = {'route':''};
 	}
 
 	evaluateWithVars(
