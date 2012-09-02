@@ -1,6 +1,6 @@
 //python ../pyphantomjs.py --cookies-file=cookies.txt --load-images=no --ignore-ssl-errors=yes init.js taobao.comment
 
-var url = '',params = {},next_option = {},cur_option = {},send,cur_action = 0;
+var url = '',port = 9080,params = {},next_option = {},cur_option = {},send,cur_action = 0;
 
 if (phantom.args.length === 0) {
     console.log('Try to pass some args when invoking this script!');
@@ -9,6 +9,7 @@ if (phantom.args.length === 0) {
 	//write2file("data/log.txt",unescape(phantom.args[0])+"\n");
 	params = JSON.parse(unescape(phantom.args[0]));
 	url = params.url;
+	port = params.port?params.port:port;
 	next_option = params.option;
 }
 
@@ -132,7 +133,7 @@ page.onLoadFinished = function (status) {
     	loaded = true;
     	console.log('loading js...');
     	cur_option = next_option;
-    	do_action(0);
+    	do_action(0,'init');
 		page.injectJs('libs/require/myrequire.js');
 		page.injectJs('main_built.js');
     }
@@ -155,7 +156,7 @@ page.onResourceReceived = function (response) {
 };
 */
 
-var port = 9080;
+//var port = 9080;
 var listening = server.listen(port, function (request, response) {
 	// we set the headers here
 	response.statusCode = 200;
@@ -165,10 +166,10 @@ var listening = server.listen(port, function (request, response) {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('bye~');
+		response.write(port+':bye~');
 	    response.close();
-	    var fs = require("fs");
-	    fs.remove("data/cookies.txt");
+	    //var fs = require("fs");
+	    //fs.remove("data/cookies_"+port+".txt");
 		phantom.exit();
 	}else if(request.url == '/test')
 	{		
@@ -176,7 +177,7 @@ var listening = server.listen(port, function (request, response) {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('test');
+		response.write(port+':test');
 	    response.close();
 	}else if(request.url == '/write2file' && request.method == 'POST')
 	{
@@ -184,7 +185,7 @@ var listening = server.listen(port, function (request, response) {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('write2file');
+		response.write(port+':write2file');
 	    response.close();
 		content = JSON.parse(request.post);
 	    write2file(content.filename,content.data+"\n");	    
@@ -195,7 +196,7 @@ var listening = server.listen(port, function (request, response) {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('route');
+		response.write(port+':route');
 	    response.close();
 
 		
@@ -227,7 +228,7 @@ var listening = server.listen(port, function (request, response) {
             'Cache': 'no-cache',
             'Content-Type': 'text/html'
         };
-		response.write('reset');
+		response.write(port+':reset');
 	    response.close();
 	    next_option = {};
 	    cur_option = {};
@@ -240,7 +241,7 @@ var listening = server.listen(port, function (request, response) {
 	{
 		response.statusCode = 404;
 		response.headers = {"Status": "404 Not Found", "Content-Type": "text/html"};
-		response.write('404 Not Found');
+		response.write(port+':404 Not Found');
 		response.close();
 	}
 });
@@ -339,7 +340,7 @@ function push(content,timeout,fn)
 					}
 					tmp += '\n';
 				}
-				write2file("data/"+filename+".txt",tmp+"\n");
+				write2file("data/"+filename+"_"+port+".txt",tmp);
 				//do_log(JSON.stringify(cur_option));
 			}
 			//console.log('ok');
@@ -355,12 +356,17 @@ function push(content,timeout,fn)
 		do_log('send object:'+send);
 		if(!timeout)
 		{
-			setTimeout(function(){push(content,true);},3000); 
+			timeout = 1;
+		}else if(timeout > 3)
+		{
+			return;
 		}
+		timeout++;
+		setTimeout(function(){push(content,timeout);},1000);
 	}
 }
 
-function do_action(cur)
+function do_action(cur,type)
 {	
 	//执行系列操作
 	if(cur_option.type == 'action' && toString.apply(cur_option.actions) === '[object Array]' && cur_option.actions.length > 0)
@@ -374,11 +380,18 @@ function do_action(cur)
 		cur_option = {'route':''};
 	}
 
+	var func = function() { document.phantomjs_option = JSON.parse(_VARS_option);document.location.hash = '#' + (new Date()).getTime() + Math.floor(Math.random()*10+1); };
+	if(type == 'init')
+	{
+		func = function() { document.phantomjs_option = JSON.parse(_VARS_option); };
+	}
+
 	evaluateWithVars(
 		page,
-		function() { document.phantomjs_option = JSON.parse(_VARS_option);document.location.hash = '#' + (new Date()).getTime() + Math.floor(Math.random()*10+1); },
+		func,
 		{ "option": JSON.stringify(cur_option) }
 	);
+	
 }
 
 function do_log(content)
@@ -386,13 +399,14 @@ function do_log(content)
 	var myDate = new Date();
 	var timeStr = myDate.getFullYear() + '-' + fillZero(myDate.getMonth() + 1) + '-' + fillZero(myDate.getDate()) + ' ' + fillZero(myDate.getHours()) + ':' + fillZero(myDate.getMinutes()) + ':' + fillZero(myDate.getSeconds());
 	var filename = [myDate.getFullYear(), fillZero(myDate.getMonth() + 1)].join('-');
-	write2file("log/"+filename+".txt",timeStr + '    ' + content+"\n");
+	write2file("log/"+filename+"_"+port+".txt",timeStr + '    ' + content+"\n");
 }
 /*
 "{\"url\":\"http://www.baidu.com\",\"option\":{\"route\":\"other.tool\",\"type\":\"action\",\"result_type\":\"file\",\"actions\":[{\"action\":\"auto_get_content\",\"row_xpath\":\"//title\",\"cols\":\"\",\"attr\":\"textContent\"}]}}"
 
 document.write('<script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>');
 var data = {'option':{'route':'other.tool','row_xpath':"//p[@id='lk']/a[3]",'cols':'','attr':'textContent'}};
+{"route":"other.tool","type":"action","result_type":"file","actions":[{"action":"auto_get_content","row_xpath":"//div[@class='th_footer_l']","cols":"","attr":"textContent"}]}
 data = JSON.stringify(data);
 $.ajax({
   type: "POST",

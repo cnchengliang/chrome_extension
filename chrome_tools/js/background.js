@@ -239,14 +239,16 @@ BG.event.chrome.extension.onRequest = function(){
 		if(reqtype == 'phantom')
 		{
 			var phantomjs_param = typeof request.param == 'undefined' ? '':request.param;
-			//var phantomjs_opt = {'url':'http://baidu.com','option':{'route':'other.tool','row_xpath':"//title",'cols':'','attr':'textContent'}};
 			var phantomjs_opt = request.opt;
 			var url = phantomjs_opt.url;
-			delete phantomjs_opt.url;			
-			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs" , " js/init.js " + opt_str);
-			//console.log(ret);
-			BG.memory.phantomjs_opt = {'url':url,'param':phantomjs_param,'opt':phantomjs_opt};
-			BG.plugin.simple.route();
+			delete phantomjs_opt.url;
+
+			var port = phantomjs_opt.option.port;
+			delete phantomjs_opt.option.port;
+
+			if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+			BG.memory.phantomjs_opt_port[port] = {'url':url,'param':phantomjs_param,'opt':phantomjs_opt};
+			BG.plugin.simple.route(port);
 
 			sendResponse({result:true});
 			return;
@@ -371,7 +373,7 @@ BG.event.chrome.extension.onRequest = function(){
 		}
 
 		if (reqtype == 'send_cookies') {
-			if(BG.memory.phantomjs_opt)	BG.plugin.simple.cookies(request.data);
+			if(BG.memory.phantomjs_opt)	BG.plugin.simple.cookies(request.data,9080);
 			sendResponse({result:true});
 			return;
 		}
@@ -453,8 +455,17 @@ BG.event.chrome.experimental.webRequest.onBeforeSendHeaders = function(){
 	, { }, ['requestHeaders','blocking']);
 };
 
-
-
+/*
+if(typeof BG.memory.phantomjs_opt_step == 'undefined') BG.memory.phantomjs_opt_step = [];
+BG.memory.phantomjs_opt_step[9087] = 12150;
+BG.memory.phantomjs_opt_step[9086] = 1860;
+BG.memory.phantomjs_opt_step[9085] = 2050;
+BG.memory.phantomjs_opt_step[9084] = 6880;
+BG.memory.phantomjs_opt_step[9083] = 6320;
+BG.memory.phantomjs_opt_step[9082] = 6340;
+BG.memory.phantomjs_opt_step[9081] = 6680;
+BG.memory.phantomjs_opt_step[9080] = 6920;
+*/
 
 BG.plugin.simple = (function () 
 {
@@ -464,76 +475,98 @@ BG.plugin.simple = (function ()
 	//obj = plugin.CreateObject("simple");
 	if(plugin) console.log('initialising simple plugin');
 
-	plugin.route = function() {
-		if(typeof BG.memory.phantomjs_opt == 'undefined') return;
-		var phantomjs_param = BG.memory.phantomjs_opt.param;
-		var opt = BG.memory.phantomjs_opt.opt;
-		if(BG.memory.phantomjs_opt.url.length > 0)
+	plugin.route = function(port) {	
+		if(typeof BG.memory.phantomjs_opt_port[port] == 'undefined') return;
+
+		//////////////////////////
+		var start = port%10;
+		if(typeof BG.memory.phantomjs_opt_step == 'undefined') BG.memory.phantomjs_opt_step = [];
+		BG.memory.phantomjs_opt_step[port] = typeof BG.memory.phantomjs_opt_step[port] == 'undefined' ?0:BG.memory.phantomjs_opt_step[port];	
+		for(var i=2;i>BG.memory.phantomjs_opt_port[port].url.length && urls.length > BG.memory.phantomjs_opt_step[port] + start;)
 		{
-			opt.url = BG.memory.phantomjs_opt.url.shift();
-			console.log(opt.url);
+			BG.memory.phantomjs_opt_port[port].url[BG.memory.phantomjs_opt_port[port].url.length] = urls[BG.memory.phantomjs_opt_step[port] + start];
+			BG.memory.phantomjs_opt_step[port] += 10;
+		}
+		//////////////////////////
+
+		
+		var phantomjs_opt = BG.memory.phantomjs_opt_port[port];
+		var phantomjs_param = phantomjs_opt.param;
+		var opt = phantomjs_opt.opt;
+		
+		if(phantomjs_opt.url.length > 0)
+		{
+			opt.url = BG.memory.phantomjs_opt_port[port].url.shift();
+			opt.port = port;
+			console.log(port+":"+opt.url);
 		}else
 		{
-			BG.sse.phantom.stopCount(9080);
-			BG.common.sendForm('GET','http://127.0.0.1:9080/reset','');
+			BG.sse.phantom.stopCount(port);
+			BG.common.sendForm('GET','http://127.0.0.1:'+port+'/reset','');
 			return;
 		}
 		var opt_str = escape(JSON.stringify(opt));
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', 'http://127.0.0.1:9080/route', true);
+		xhr.open('POST', 'http://127.0.0.1:'+port+'/route', true);
 		xhr.responseType = 'text';		
 		var run = function() {
 			//opt_str = opt_str.replace(/\"/g, '\\"');
 			//opt_str = opt_str.replace(/\'/g, "\\'");
 			//--proxy-type=socks5 --proxy=127.0.0.1:1080
-			BG.common.notice('run phantomjs:','');
-			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no "+phantomjs_param+" js/init.js " + opt_str);
-			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no --cookies-file=data/cookies.txt "+phantomjs_param+" js/init.js " + opt_str);
+			//BG.common.notice('run phantomjs:','port:'+port);
+			//var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no "+phantomjs_param+" js/init.js " + opt_str);
+			var ret = BG.plugin.simple.phantom("plugin/bin/phantomjs","  --load-images=no --cookies-file=data/cookies_"+port+".txt "+phantomjs_param+" js/init.js " + opt_str);
 			//考虑手动关闭函数
-			BG.sse.phantom.CloseEventSource(9080);
-			setTimeout(function(){if(BG.sse.phantom.isListening() == false)	BG.sse.phantom.CreateEventSource(9080);},1000); 
+			BG.sse.phantom.stopCount(port);
+			setTimeout(function(){if(BG.sse.phantom.isListening(port) == false)	BG.sse.phantom.CreateEventSource(port);},1000); 
 				
 		};
 		xhr.onerror = run;
 		xhr.onload = function(e) {
 			if (this.status == 200) {
-				console.log(this.response);
+				console.log(port+":"+this.response);
 				
 			}else
 			{
-				console.log('phantom onload error');
+				console.log(port+':phantom onload error');
 				run();
 			}
 		};
 		xhr.send(opt_str);
 	}
 
-	plugin.cookies = function(data) {
+	plugin.cookies = function(data,port) {
 		var xhr = new XMLHttpRequest();
-		xhr.open('POST', 'http://127.0.0.1:9080/write2file', true);
+		xhr.open('POST', 'http://127.0.0.1:'+port+'/write2file', true);
 		xhr.responseType = 'text';
 		xhr.onload = function(e) {
 			if (this.status == 200) {
-				console.log(this.response);
+				console.log(port+":"+this.response);
 			}else
 			{
-				console.log('phantom cookies onload');
+				console.log(port+':phantom cookies onload');
 			}
 		};
 		xhr.onerror = function() {
-			console.log('phantom cookies onerror');
+			console.log(port+':phantom cookies onerror');
 		};
-		var content = JSON.stringify({'filename':'data/cookies.txt','data':data});
+		var content = JSON.stringify({'filename':'data/cookies_'+port+'.txt','data':data});
 		xhr.send(content);
 	}
 
-	plugin.init = function()
+	plugin.init = function(port)
 	{
-		BG.common.notice('init phantomjs:','');
-
-		var ret = BG.plugin.simple.phantom("cmd"," /c for /f \"tokens=5\" %i in (\'netstat -aon^|findstr \"0.0.0.0:9080\"\') do @taskkill /F /PID %i");
-		//"taskkill","  /f /t /im phantomjs.exe "
-		var ret = BG.plugin.simple.phantom("kill","  -9 $(lsof -i:9080 | grep '9080' | awk '{print $2}') ");
+		if(port)
+		{
+			var ret = BG.plugin.simple.phantom("cmd"," /c for /f \"tokens=5\" %i in (\'netstat -aon^|findstr \"0.0.0.0:" + port + "\"\') do @taskkill /F /PID %i");
+			//"taskkill","  /f /t /im phantomjs.exe "
+			var ret = BG.plugin.simple.phantom("kill","  -9 $(lsof -i:" + port + " | grep *:" + port + " | awk '{print $2}') ");
+			//BG.common.notice('init phantomjs:','port:'+port);
+		}else
+		{
+			var ret = BG.plugin.simple.phantom("taskkill","  /f /t /im phantomjs.exe ");
+			var ret = BG.plugin.simple.phantom("killall","  -9 phantomjs ");
+		}
 	}
 
 	return plugin;
@@ -560,6 +593,7 @@ BG.sse.phantom = (function ()
 	}
 	function CreateEventSource(port)
 	{
+		var phantomjs_opt = BG.memory.phantomjs_opt_port[port];
 		arr_num[port] = 0;
 		arr_timer[port] = 0;
 		tick(port);
@@ -570,54 +604,55 @@ BG.sse.phantom = (function ()
 			arr_timer[port] = d;//10秒之后
 			fns[port] = function(){
 				var now = new Date();
-				if(now - arr_timer[port] >=10*1000)
+				if(now - arr_timer[port] >=10*1000 && phantomjs_opt.url.length > 0)
 				{
-					BG.common.notice('EventSource:'+port,'timeout');
+					//BG.common.notice('EventSource:'+port,'timeout');
 					console.log('EventSource:'+port,'timeout');					
-					BG.plugin.simple.init();					
+					BG.plugin.simple.init(port);					
 					arr_num[port] = 0;
-					setTimeout(function(){BG.plugin.simple.route();},3000);
-					BG.sse.phantom.CloseEventSource(port);
+					setTimeout(function(){BG.plugin.simple.route(port);},3000);
+					BG.sse.phantom.stopCount(port);
 				}
 			};
 			var timeStr = [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
 
-			console.log('lastEventID: ' + event.lastEventId +
-					 ', server time: ' + timeStr, 'msg:'+event.data);
+			console.log('port: ' + port + ', server time: ' + timeStr, 'msg:'+event.data);
 			try
 			{
 
 				if(event.data.indexOf("sse_result") != -1)
 				{
-					var data = JSON.parse(unescape(event.data));
-					if(BG.memory.phantomjs_opt.opt.option.result_type == 'api')
+					var data = JSON.parse(unescape(event.data));					
+					if(phantomjs_opt.opt.option.result_type == 'api')
 					{
 						BG.common.sendForm('POST','http://127.0.0.1/php_tools/slim/import_web_content',JSON.stringify(data.sse_result));
 					}
-					else if(BG.memory.phantomjs_opt.opt.option.result_type == 'notice')
+					else if(phantomjs_opt.opt.option.result_type == 'notice')
 					{
-						BG.common.notice('time:'+timeStr,data.sse_result);
+						BG.common.notice(port+':time:'+timeStr,data.sse_result);
 					}
 				}
 			} catch (e) {
-				console.log('sse error');
+				console.log(port+':sse error');
 			}
-			arr_num[port]++;
-			if(arr_num[port] >= 5 || event.data.indexOf("sys_result") != -1)
+			//arr_num[port]++;
+			////////////////////////////////////////////////////////////////
+			if(arr_num[port] >= 1 || event.data.indexOf("sys_result") != -1)
 			{
-				BG.plugin.simple.route();
+				BG.plugin.simple.route(port);
 				arr_num[port] = 0;
 			}
+			////////////////////////////////////////////////////////////////
 			
 		}, false);
 
 		arr_source[port].addEventListener('open', function(event) {
-		  console.log('> Connection was opened');
+		  console.log(port+'> Connection was opened');
 		}, false);
 
 		arr_source[port].addEventListener('error', function(event) {
 		  if (event.eventPhase == 2) { //EventSource.CLOSED
-			console.log('> Connection was closed');
+			console.log(port+'> Connection was closed');
 			//BG.sse.phantom.CloseEventSource(port);
 			
 		  }
