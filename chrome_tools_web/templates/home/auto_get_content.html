@@ -4,6 +4,7 @@
 
 table.chrome_xpath_table {
 	margin: 0 0 0 1px;
+	padding: 0;
 	border-color: #36C;
 	border-spacing: 0;
 	clear: right;
@@ -12,12 +13,19 @@ table.chrome_xpath_table {
 	font: 13px/22px 'Open Sans',arial,sans-serif;
 }
 
+table.chrome_xpath_table tr {
+	padding: 0;
+	margin: 0;
+}
 table.chrome_xpath_table td {
 	padding: 6px 12px;
+	margin: 0;
 	border: 1px solid #36C;
 	background-color: white;
 	text-align: left;
 	vertical-align: top;
+	word-break: normal;
+	font: 13px/22px 'Open Sans',arial,sans-serif;
 }
 
 table.chrome_xpath_table input[type="button"], input[type="submit"] {
@@ -34,9 +42,14 @@ table.chrome_xpath_table input[type="button"], input[type="submit"] {
 	cursor: pointer;
 	text-decoration: none;
 }
+
+table.chrome_xpath_table input, textarea {
+	font-size:12px;
+	vertical-align: middle;
+}
 -->
 </style>
-<div id="dashboard_div" style="position:fixed;z-index:20000;background-color:#fff;bottom: 0%;right:0%;width: 240px;height: 300px;">
+<div id="dashboard_div" style="position:fixed;z-index:20000;background-color:#fff;bottom: 0%;right:0%;">
     <table class="chrome_xpath_table">
         <tbody>
         	<tr>

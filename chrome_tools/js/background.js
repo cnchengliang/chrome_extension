@@ -479,13 +479,14 @@ BG.plugin.simple = (function ()
 		if(typeof BG.memory.phantomjs_opt_port[port] == 'undefined') return;
 
 		//////////////////////////
-		var start = port%10;
+		var step = 5;
+		var start = port%step;		
 		if(typeof BG.memory.phantomjs_opt_step == 'undefined') BG.memory.phantomjs_opt_step = [];
 		BG.memory.phantomjs_opt_step[port] = typeof BG.memory.phantomjs_opt_step[port] == 'undefined' ?0:BG.memory.phantomjs_opt_step[port];	
 		for(var i=2;i>BG.memory.phantomjs_opt_port[port].url.length && urls.length > BG.memory.phantomjs_opt_step[port] + start;)
 		{
 			BG.memory.phantomjs_opt_port[port].url[BG.memory.phantomjs_opt_port[port].url.length] = urls[BG.memory.phantomjs_opt_step[port] + start];
-			BG.memory.phantomjs_opt_step[port] += 10;
+			BG.memory.phantomjs_opt_step[port] += step;
 		}
 		//////////////////////////
 
@@ -635,12 +636,21 @@ BG.sse.phantom = (function ()
 			} catch (e) {
 				console.log(port+':sse error');
 			}
-			//arr_num[port]++;
+			arr_num[port]++;
 			////////////////////////////////////////////////////////////////
-			if(arr_num[port] >= 1 || event.data.indexOf("sys_result") != -1)
+			if(1 || arr_num[port] >= 5 || event.data.indexOf("sys_result") != -1)
 			{
-				BG.plugin.simple.route(port);
-				arr_num[port] = 0;
+				if(arr_num[port] >= 5)
+				{
+					BG.plugin.simple.init(port);					
+					arr_num[port] = 0;
+					setTimeout(function(){BG.plugin.simple.route(port);},3000);
+					BG.sse.phantom.stopCount(port);
+				}else
+				{
+					BG.plugin.simple.route(port);
+					arr_num[port] = 0;
+				}
 			}
 			////////////////////////////////////////////////////////////////
 			

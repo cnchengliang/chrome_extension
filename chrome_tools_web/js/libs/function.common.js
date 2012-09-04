@@ -116,6 +116,27 @@ function getRows(args,fn)
 		fn(arrStr);
 }
 
+function getRows_2(args,fn)
+{
+	var rows = args[0],cols = args[1],attr = args[2];
+	var arrStr = [];
+	var colStr = [];
+	//nodes
+	for (var i=0, len=rows.length; i < len; i++) {
+		var args = [strTrim(rows[i],"g"),"[1]",strTrim(cols[i],"g"),strTrim(attr[i],"g")];
+		var tmp = getNodeDetail(args);
+		if(typeof tmp == 'undefined' || tmp == 'null')
+			colStr[colStr.length] = getNodeAttr(args);
+		else
+			colStr[colStr.length] = tmp;
+		colStr[colStr.length-1] = colStr[colStr.length-1].replace(/[\r\t\n]/g, "");					
+
+	}
+	arrStr[arrStr.length] = colStr;
+	if(typeof(fn) != 'undefined')
+		fn(arrStr);
+}
+
 //?param=test
 function getParam( name ) {
 	var res = "";

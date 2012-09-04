@@ -161,7 +161,7 @@ define([
         },
         getContent: function()
 		{
-			var row_xpath = strTrim($("#content_x").val(),"g");
+			var row_xpath = $("#content_x").val().split(',');
 			var cols = $("#content_y").val().split(',');
 			var attr = $("#attr").val().split(',');
 			var fn = function(rows) {
@@ -172,7 +172,13 @@ define([
 				$('#submit_result').text(str);
 			}
 			//nodes
-			getRows([row_xpath,cols,attr],fn);
+			if(row_xpath.length == 1)
+			{
+				getRows([row_xpath,cols,attr],fn);
+			}else
+			{
+				getRows_2([row_xpath,cols,attr],fn);
+			}
 		},
         render: function () {
             var data = {
