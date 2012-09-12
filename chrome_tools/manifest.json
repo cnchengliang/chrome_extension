@@ -33,7 +33,7 @@
    },
    "name": "My Chrome Tools",
    "options_page": "views/options.html",
-   "permissions": [ "cookies", "proxy", "tabs", "http://*/*", "https://*/*", "unlimitedStorage", "notifications", "experimental" ],
+   "permissions": [ "cookies", "proxy", "tabs", "http://*/*", "https://*/*", "unlimitedStorage", "notifications", "experimental", "contextMenus" ],
    "version": "0.2",
    "plugins": [ {
    		"path": "plugin/simple_plugin.dll"

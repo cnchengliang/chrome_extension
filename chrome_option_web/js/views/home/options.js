@@ -137,6 +137,18 @@ define([
 						console.log('result:'+response.result);
 				});				
 			});
+
+			$('#get_taobao_rate').bind('click', function(){
+				chrome.extension.sendRequest({
+						type:'taobao',
+						act:'get_rate',
+						nick:$('#taobao_nick').val()
+					},
+					function(response) {
+						console.log('result:'+response.result);
+				});
+				
+			});
 			
         },
         setTabs: function()

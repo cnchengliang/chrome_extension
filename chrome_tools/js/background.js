@@ -254,6 +254,15 @@ BG.event.chrome.extension.onRequest = function(){
 			return;
 		}
 
+		if(reqtype == 'taobao')
+		{
+			switch(request.act)
+			{
+				case 'get_rate':sendResponse({result:request.nick});
+			}
+			return;
+		}
+
 		if (reqtype == 'notice') {
 			BG.common.notice(request.title,request.msg);
 			sendResponse({});
@@ -926,4 +935,20 @@ BG.init();
 
 
 //["http://127.0.0.1/php_tools/slim/data/0a25c0737b9f4c01ad57459821446278.html"]
+
+
+function genericOnClick(info, tab) {
+  //alert("菜单ID为 " + info.menuItemId + "的菜单已被点击");
+  alert("元素信息: " + JSON.stringify(info));
+  //alert("标签信息: " + JSON.stringify(tab));
+}
+ 
+var parent = chrome.contextMenus.create({"title": "chrome tool", "contexts":["all"]});
+//和创建父菜单项一样的方法，只是多了一个"parentId"参数。
+var child1 = chrome.contextMenus.create(
+  {"title": "子菜单 1", "parentId": parent, "contexts":["all"], "onclick": genericOnClick});
+
+//创建一些复选(checkbox)菜单项,需要注意的是"type"所标示的参数为checkbox,如果忽略此参数则创建普通的菜单项
+var checkbox1 = chrome.contextMenus.create(
+  {"title": "Checkbox1", "parentId": parent, "contexts":["all"], "type": "checkbox", "onclick":genericOnClick});
 
