@@ -161,9 +161,9 @@ define([
         },
         getContent: function()
 		{
-			var row_xpath = $("#content_x").val().split(',');
-			var cols = $("#content_y").val().split(',');
-			var attr = $("#attr").val().split(',');
+			var row_xpath = $("#content_x").val().split(';');
+			var cols = $("#content_y").val().split(';');
+			var attr = $("#attr").val().split(';');
 			var fn = function(rows) {
 				var str = '';
 				for (var i=0, len=rows.length; i < len; i++) {

@@ -340,6 +340,7 @@ function push(content,timeout,fn)
 					}
 					tmp += '\n';
 				}
+				if(data.length == 0) tmp += '\n';
 				write2file("data/"+filename+"_"+port+".txt",tmp);
 				//do_log(JSON.stringify(cur_option));
 			}
