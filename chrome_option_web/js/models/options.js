@@ -25,6 +25,8 @@ define([
         	var options = {};
 			if(localStorage['options'])
 				options = JSON.parse(localStorage['options']) || {};
+			else
+				localStorage.setItem('options', '{}');	
 			options[key] = val;
 			this.set(key,val);
 			if(localStorage['options'])
