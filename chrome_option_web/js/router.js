@@ -5,14 +5,16 @@ define([
 	'Backbone', 
 	'views/home/main',
 	'views/home/options',
+	'views/home/log',
 	'views/home/feed',
+	'views/taobao/options',
 	'views/taobao/top'
-	], function ($, _, Backbone, mainHomeView,optionsView,feedView,taobaoTopGoodView) {
+	], function ($, _, Backbone, mainHomeView,optionsView,logView,feedView,taobao_optionsView,taobaoTopGoodView) {
 	var pageDownloaded = function(data,fn){
 		var target = $("#main-content"),
 			h = location.hash;
 		if (!h) {			
-		    h = '#!/options';
+		    h = '#!/taobao_options';
 		}
 		h = h.split('/').slice(0,2).join('/');
 		var anchor = $("a[href!=#]").filter(function() {
@@ -46,7 +48,7 @@ define([
     	var target = $("#main-content"),
 			h = location.hash;
 		if (!h) {			
-		    h = '#!/options';
+		    h = '#!/taobao_options';
 		}
 		h = h.split('/').slice(0,2).join('/');
 		var anchor = $("a[href!=#]").filter(function() {
@@ -66,7 +68,10 @@ define([
     var AppRouter = Backbone.Router.extend({
         routes: {
             // Define some URL routes
+        	'!/taobao_options': 'taobao_optionsAction',
             '!/options': 'optionsAction',
+            '!/log': 'logAction',
+            '!/log/:query': 'logSearchAction',
             '!/feed': 'feedAction',
             '!/feed/:query': 'feedSearchAction',
             '!/taobao_top_goods': 'taobaoTopGoodAction',
@@ -80,6 +85,12 @@ define([
         },
         optionsAction: function(){
         	this.render(optionsView);
+        },
+        logAction: function(){        	
+        	this.render(logView);
+        },
+        taobao_optionsAction: function(){
+        	this.render(taobao_optionsView);
         },
         feedAction: function(){        	
         	this.render(feedView);
@@ -102,7 +113,7 @@ define([
         defaultAction: function (actions) {
             // We have no matching route, lets display the home page 
             //mainHomeView.render();
-            this.render(optionsView);
+            this.render(taobao_optionsView);
         },
         render: function(view)
         {

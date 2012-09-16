@@ -1,0 +1,36 @@
+
+    	<div class="container_12 leading">
+		<section class="portlet">
+			<header>
+				<h2>日志记录</h2>
+			</header>
+			<section>
+	    		<div class="row-fluid">
+	    			<div class="well">
+						<input id="query_text" type="text" class="input-medium search-query">
+						<button id="search" class="btn" type="button">查询</button>
+						<button id="next" class="btn" type="button">此页数据已看</button>
+					</div>
+						<form id="sc_form">
+						<table id="table_result" class="table table-bordered">
+							<thead>
+								  <tr>
+								  	<th width="5%">#</th>
+								  	<th width="35%">内容</th>
+							    	<th width="35%">来源</th>
+							    	<th width="12%">时间</th>
+							    	<th width="13%">操作</th>
+								  </tr>
+							</thead>
+							<tbody>
+								<%=content%>
+							</tbody>
+						</table>
+						</form>
+					</div>
+
+			</section>
+		</section>
+	</div>
+
+

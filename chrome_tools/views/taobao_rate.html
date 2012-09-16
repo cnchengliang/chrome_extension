@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  	<title>rate</title>
+    <meta charset='utf-8'> 
+    <style>html{overflow-y:auto}body{font:14px arial;text-align:left;background:#fff}body,p,form,ul,li{margin:0;padding:0;list-style:none}</style>
+  </head>
+  <body style="height: 85px;margin: 0;width: 276px;">
+    <div id="content">
+      <div class="bell-gong" style="position: absolute;top: 10px;left: 6px;"><img src="../images/icon48.png">
+      </div>
+      <div id="rs" style="position: absolute;left: 67px;"></div>
+    </div>
+
+
+    <script type="text/javascript">
+	function init() {
+		var bg = chrome.extension.getBackgroundPage();
+		var auto_close = Number(bg.BG.common.getOption('close_tips'));
+		document.querySelector('#rs').innerHTML = bg.BG.memory.taobao_rate;
+		bg.BG.memory.taobao_rate = "";
+		if(auto_close != 0)
+		{
+			closeWindow(auto_close);
+		}
+	}
+
+	function closeWindow(seconds) {
+		window.setTimeout(function() {
+			window.close();
+		}, seconds*1000);
+	}
+	init();
+
+
+	</script>
+  </body>
+</html>

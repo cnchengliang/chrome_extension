@@ -51,6 +51,8 @@ BG.register("BG.sse.phantom");
 BG.register("BG.common.timer");
 BG.register("BG.common.menu");
 
+BG.register("BG.event.taobao");
+
 
 
 
@@ -105,6 +107,11 @@ BG.common.md5 = function(text)
 	var hash = CryptoJS.MD5(text);
 	//console.log(hash.toString());
 	return hash.toString();
+}
+
+BG.common.str2int = function(str)
+{
+	return Number(str.match(/\d/g).join(""));
 }
 
 //html5数据库：添加、更新、查询、删除
@@ -260,7 +267,7 @@ BG.event.chrome.extension.onRequest = function(){
 		{
 			switch(request.act)
 			{
-				case 'get_rate':sendResponse({result:request.nick});
+				case 'get_rate':BG.event.taobao.taobao_rate_event(request.nick,sendResponse);
 			}
 			return;
 		}
@@ -933,12 +940,12 @@ BG.common.sendForm = function(action,url,data) {
 	xhr.send(formData);
 }
 
-BG.common.menu = (function () 
+BG.event.taobao = (function () 
 {
-	var menuid = {'taobao_rate':0};
 	var is_seller = false;
 	var cur_action = 0;
-	
+	var output = 1;
+	var resp;
 	function get_taobao_rate(data)
 	{
 		cur_action = (cur_action+1)%2 == 0?2:1;
@@ -950,10 +957,10 @@ BG.common.menu = (function ()
 			{
 				if(ret[ret.length-2] != 'null')
 				{
-					BG.common.notice('提示：',ret[ret.length-2]);
+					BG.common.notice(ret[ret.length-2],'');
 				}else if(ret[ret.length-3] == 'null')
 				{
-					BG.common.notice('提示：','不存在该买家');
+					BG.common.notice('不存在该买家','');
 				}else if(ret[2] == 'null')
 				{
 					is_seller = ret[ret.length-1] == 'null'?false:true;
@@ -962,35 +969,65 @@ BG.common.menu = (function ()
 			
 			if(cur_action == 2 && ret[2] != 'null')
 			{
-				var xinyong = ret[0].match(/\d/g).join("");
+				var credit = ret[0].match(/\d/g).join("");
+				var url = "http://rate.taobao.com/rate.htm?user_id="+ret[1];
+				var nick = ret[2];
+				var url_label = '查看';
+				if(output == 2) url_label = url;
 				if(is_seller)
-				{
-					BG.common.notice('买家信息(该买家同时也开有店铺)',"信用:"+xinyong);
+				{										
+					BG.memory.taobao_rate = '<ul><li>买家昵称：'+nick+'</li><li>买家信用：<font color="blue"><b>'+credit+'</b></font></li><li>详细信息：<font color="blue"><a href="'+url+'" target="_blank">'+url_label+'</a></font></li><li>　　备注：该买家同时也开有店铺</li></ul>';
+					if(output == 1)
+						BG.common.notice('买家信息(该买家同时也开有店铺)',"",'taobao_rate.html');
+					else if(typeof resp != 'undefined')
+						resp({result:BG.memory.taobao_rate,append:true});
+					
 				}else
 				{
-					BG.common.notice('买家信息',"信用:"+xinyong);
+					var rate = ret[3].match(/\d+\.+\d+%/g).join("");
+					var hao = BG.common.str2int(ret[4]) + BG.common.str2int(ret[5]);
+					var zhong = BG.common.str2int(ret[6]) + BG.common.str2int(ret[7]);
+					var cha = BG.common.str2int(ret[8]) + BG.common.str2int(ret[9]);
+					BG.memory.taobao_rate = '<ul><li>买家昵称：'+nick+'</li><li>买家信用：<font color="blue"><b>'+credit+'</b></font>(好评率:'+rate+')<font color="#FF0000"><strong></strong></font></li><li>　　中评：<font color="blue"><b>'+zhong+'</b></font></li><li>　　差评：<font color="blue"><b>'+cha+'</b></font></li><li>详细信息：<font color="blue"><a href="'+url+'" target="_blank">'+url_label+'</a></font></li></ul>';
+					if(output == 1)
+						BG.common.notice('买家信息',"",'taobao_rate.html');
+					else if(typeof resp != 'undefined')
+						resp({result:BG.memory.taobao_rate,append:true});
 				}
 			}else if(cur_action == 2)
 			{
-				BG.common.notice('提示：','获取买家信用超时,请重新查看');
+				BG.common.notice('获取买家信用超时,请重新查看','');
 			}
 		}
 		console.log(data);
 		//BG.common.notice('rate:',data.sse_result);		
 	}
 	
-	function taobao_rate_event(text)
+	function taobao_rate_event(text,send)
 	{
 		if(!text || text == '') return;
 		var url = 'http://member1.taobao.com/member/userProfile.jhtml?asker=wangwang&userID='+urlEncode(text);
 		var port = 9080;
-		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//li[contains(descendant-or-self::*/text(),'买家信用')];//em[contains(descendant-or-self::*/text(),'好评率')];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[4];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[4];//a[contains(descendant-or-self::*/text(),'信用评价')];//div[@class='ErrorMsg'];//a[contains(descendant-or-self::*/text(),'店铺介绍')]","cols":"","attr":"textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent"},{"action":"auto_click","xpath":"//a[contains(descendant-or-self::*/text(),'信用评价')]"}]}};
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//li[contains(descendant-or-self::*/text(),'买家信用')];//input[@id='monthuserid'];//span[@data-tnick!=''];//em[contains(descendant-or-self::*/text(),'好评率')];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[4];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[4];//a[contains(descendant-or-self::*/text(),'信用评价')];//div[@class='ErrorMsg'];//a[contains(descendant-or-self::*/text(),'店铺介绍')]","cols":"","attr":"textContent;value;data-tnick;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent"},{"action":"auto_click","xpath":"//a[contains(descendant-or-self::*/text(),'信用评价')]"}]}};
 
 		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
-		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.common.menu.get_taobao_rate','limit_page':2};
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.taobao.get_taobao_rate','limit_page':2};
 		
 		BG.plugin.simple.route(port);
+		if(send)
+		{
+			output=2;
+			resp = send;
+		}
 	}
+	return {
+		taobao_rate_event:taobao_rate_event,
+		get_taobao_rate:get_taobao_rate
+	};
+})();
+BG.common.menu = (function () 
+{
+	var menuid = {'taobao_rate':0};	
 	
 	function genericOnClick(info, tab) {
 		//console.log("菜单ID为 " + info.menuItemId + "的菜单已被点击");
@@ -998,7 +1035,7 @@ BG.common.menu = (function ()
 		//console.log("标签信息: " + JSON.stringify(tab));
 		switch(info.menuItemId)
 		{
-			case menuid.taobao_rate:taobao_rate_event(info.selectionText);break;
+			case menuid.taobao_rate:BG.event.taobao.taobao_rate_event(info.selectionText);break;
 		}
 	}
 	
@@ -1007,7 +1044,7 @@ BG.common.menu = (function ()
 		var parent = chrome.contextMenus.create({"title": "simple tool", "contexts":["all"]});
 		//和创建父菜单项一样的方法，只是多了一个"parentId"参数。
 		menuid.taobao_rate = chrome.contextMenus.create(
-		  {"title": "查看", "parentId": parent, "contexts":["all"], "onclick": genericOnClick});
+		  {"title": "查看淘宝买家信用", "parentId": parent, "contexts":["all"], "onclick": genericOnClick});
 		/*
 		//创建一些复选(checkbox)菜单项,需要注意的是"type"所标示的参数为checkbox,如果忽略此参数则创建普通的菜单项
 		var checkbox1 = chrome.contextMenus.create(
@@ -1019,8 +1056,7 @@ BG.common.menu = (function ()
 		createMenu();
 	}
 	return {
-		init:init,
-		get_taobao_rate:get_taobao_rate
+		init:init
 	};
 })();
 

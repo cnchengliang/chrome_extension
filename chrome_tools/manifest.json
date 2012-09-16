@@ -31,10 +31,10 @@
       "52": "res/icon52.png",
       "92": "res/icon92.png"
    },
-   "name": "My Chrome Tools",
+   "name": "Simple Tools",
    "options_page": "views/options.html",
    "permissions": [ "cookies", "proxy", "tabs", "http://*/*", "https://*/*", "unlimitedStorage", "notifications", "experimental", "contextMenus" ],
-   "version": "0.2",
+   "version": "0.3",
    "plugins": [ {
    		"path": "plugin/simple_plugin.dll"
       
