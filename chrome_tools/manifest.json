@@ -1,5 +1,10 @@
 {
-   "background_page": "views/background.html",
+   "manifest_version": 2,
+
+   "background": {
+      "page": "views/background.html"
+   },
+
    "browser_action": {
       "default_icon": "res/icon32.png",
 	  "default_title": "__MSG_actionTitle__"

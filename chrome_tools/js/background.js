@@ -20,7 +20,14 @@ var BG = {
 	},
 	register: function(namespace)
 	{
-		var nsArray = namespace.split('.');
+		var nsArray = namespace.split('.');		
+		for (var i = 0, len = nsArray.length, obj = window; i < len; ++i) {
+			if(!(nsArray[i] in obj))
+				obj[nsArray[i]] = new Object();
+		    obj = obj[nsArray[i]];
+		}
+		/*
+		//extension disallowed eval
 		var sEval = "";
 		var sNS = "";
 		for (var i = 0; i < nsArray.length; i++)
@@ -28,8 +35,8 @@ var BG = {
 		    if (i != 0) sNS += ".";
 		    sNS += nsArray[i];
 		    sEval += "if (typeof(" + sNS + ") == 'undefined') " + sNS + " = new Object();";
-		}
-		if (sEval != "") eval(sEval);
+		}		
+		if (sEval != "") eval(sEval);*/
 	}
 };
 
@@ -112,6 +119,15 @@ BG.common.md5 = function(text)
 BG.common.str2int = function(str)
 {
 	return Number(str.match(/\d/g).join(""));
+}
+
+BG.common.getLastObj = function(str)
+{
+	var nsArray = str.split('.');		
+	for (var i = 0, len = nsArray.length, obj = window; i < len; ++i) {
+	    obj = obj[nsArray[i]];
+	}
+	return obj;
 }
 
 //html5数据库：添加、更新、查询、删除
@@ -641,7 +657,7 @@ BG.sse.phantom = (function ()
 
 				if(event.data.indexOf("sse_result") != -1)
 				{
-					var data = JSON.parse(unescape(event.data));					
+					var data = JSON.parse(unescape(event.data));
 					if(phantomjs_opt.opt.option.result_type == 'api')
 					{
 						BG.common.sendForm('POST','http://127.0.0.1/php_tools/slim/import_web_content',JSON.stringify(data.sse_result));
@@ -650,7 +666,8 @@ BG.sse.phantom = (function ()
 					{
 						if(phantomjs_opt.callback)
 						{
-							eval(phantomjs_opt.callback)(data.sse_result);
+							var func = BG.common.getLastObj(phantomjs_opt.callback);
+							func(data.sse_result);
 						}else
 						{
 							//BG.common.notice(port+':time:'+timeStr,data.sse_result);
@@ -661,7 +678,8 @@ BG.sse.phantom = (function ()
 				{
 					if(phantomjs_opt.callback)
 					{
-						eval(phantomjs_opt.callback)('');
+						var func = BG.common.getLastObj(phantomjs_opt.callback);
+						func('');
 					}
 				}
 			} catch (e) {
@@ -948,6 +966,7 @@ BG.event.taobao = (function ()
 	var resp;
 	function get_taobao_rate(data)
 	{
+		console.log(data);
 		cur_action = (cur_action+1)%2 == 0?2:1;
 		
 		if(toString.apply(data) === '[object Array]')
@@ -999,7 +1018,7 @@ BG.event.taobao = (function ()
 				BG.common.notice('获取买家信用超时,请重新查看','');
 			}
 		}
-		console.log(data);
+		
 		//BG.common.notice('rate:',data.sse_result);		
 	}
 	
@@ -1008,7 +1027,7 @@ BG.event.taobao = (function ()
 		if(!text || text == '') return;
 		var url = 'http://member1.taobao.com/member/userProfile.jhtml?asker=wangwang&userID='+urlEncode(text);
 		var port = 9080;
-		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//li[contains(descendant-or-self::*/text(),'买家信用')];//input[@id='monthuserid'];//span[@data-tnick!=''];//em[contains(descendant-or-self::*/text(),'好评率')];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[4];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[4];//a[contains(descendant-or-self::*/text(),'信用评价')];//div[@class='ErrorMsg'];//a[contains(descendant-or-self::*/text(),'店铺介绍')]","cols":"","attr":"textContent;value;data-tnick;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent"},{"action":"auto_click","xpath":"//a[contains(descendant-or-self::*/text(),'信用评价')]"}]}};
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//li[contains(descendant-or-self::*/text(),'买家信用')];//input[@id='monthuserid'];//span[@data-nick!=''];//em[contains(descendant-or-self::*/text(),'好评率')];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[2];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[3];//div[@id='J_show_list']/ul/li[3]/table/tbody/tr[2]/td[4];//div[@id='J_show_list']/ul/li[4]/table/tbody/tr[2]/td[4];//a[contains(descendant-or-self::*/text(),'信用评价')];//div[@class='ErrorMsg'];//a[contains(descendant-or-self::*/text(),'店铺介绍')]","cols":"","attr":"textContent;value;data-nick;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent;textContent"},{"action":"auto_click","xpath":"//a[contains(descendant-or-self::*/text(),'信用评价')]"}]}};
 
 		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
 		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.taobao.get_taobao_rate','limit_page':2};
@@ -1077,6 +1096,5 @@ BG.init();
 
 
 //["http://127.0.0.1/php_tools/slim/data/0a25c0737b9f4c01ad57459821446278.html"]
-
 
 

@@ -3,8 +3,8 @@ define([
 	'Underscore', 
 	'Backbone',
 	// Pull in the Collection module from above
-	'text!templates/taobao/options.html'
-	], function ($, _, Backbone, optionsTemplate) {
+	'templates/taobao/options.compiled'
+	], function ($, _, Backbone) {
 
     var view = Backbone.View.extend({
         el: "",
@@ -35,8 +35,8 @@ define([
         },
         render: function (callback) {
         	_this = this;
-        	var template = _.template( optionsTemplate, {} );
-		    callback(template, function(){_this.bindEvents();});		
+        	//var template = _.template( optionsTemplate, {} );
+		    callback(optionsTemplate({}), function(){_this.bindEvents();});		
             
         }
     });
