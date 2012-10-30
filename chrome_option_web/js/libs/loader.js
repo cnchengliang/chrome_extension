@@ -19,7 +19,8 @@ define([
 	'order!libs/bootstrap/bootstrap-carousel',
 	'order!libs/bootstrap/bootstrap-button',
 	'order!libs/bootstrap/bootstrap-alert',
-	'order!libs/bootstrap/bootstrap-transition'
+	'order!libs/bootstrap/bootstrap-transition',
+	'order!libs/bootstrap/bootstrap-datepicker'
 ],
 function(){
   return {

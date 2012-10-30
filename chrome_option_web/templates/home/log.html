@@ -7,19 +7,24 @@
 			<section>
 	    		<div class="row-fluid">
 	    			<div class="well">
-						<input id="query_text" type="text" class="input-medium search-query">
-						<button id="search" class="btn" type="button">查询</button>
-						<button id="next" class="btn" type="button">此页数据已看</button>
+	    				<input id="query_text" type="text" class="input-medium search-query" placeholder="输入关键字">
+						<select id="searchtype" class="span1 btn input-small">
+						  <option value="1">查询</option>
+						  <option value="2">过滤</option>
+						</select>
+						<select id="source" class="span1 btn input-small">
+						  <%=source%>
+						</select>
+						<button id="gosubmit" class="btn" type="button">提交</button>
 					</div>
 						<form id="sc_form">
 						<table id="table_result" class="table table-bordered">
 							<thead>
 								  <tr>
-								  	<th width="5%">#</th>
-								  	<th width="35%">内容</th>
-							    	<th width="35%">来源</th>
-							    	<th width="12%">时间</th>
-							    	<th width="13%">操作</th>
+								  	<th width="10%"><input type="checkbox" id="checkall" />全选</th>
+								  	<th width="65%">内容</th>
+								  	<th width="10%">类型</th>
+							    	<th width="15%">时间</th>
 								  </tr>
 							</thead>
 							<tbody>
@@ -27,6 +32,14 @@
 							</tbody>
 						</table>
 						</form>
+						<div class="well">
+							<button id="act_del" class="btn" type="button">删除</button>
+							<input id="cur_page" type="hidden" value="1" >
+							<ul class="pager">
+							  <li><a id="previous">上一页</a></li>
+							  <li><a id="next">下一页</a></li>
+							</ul>
+						</div>
 					</div>
 
 			</section>

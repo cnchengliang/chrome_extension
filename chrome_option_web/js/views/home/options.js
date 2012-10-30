@@ -4,8 +4,8 @@ define([
 	'Backbone',
 	// Pull in the Collection module from above
 	'models/options', 
-	'text!templates/home/options.html'
-	], function ($, _, Backbone, optionsModel, optionsTemplate) {
+	'templates/home/options.compiled'
+	], function ($, _, Backbone, optionsModel) {
 
     var view = Backbone.View.extend({
         el: "",
@@ -277,7 +277,8 @@ define([
 					}
 					options.phantomjs_url = options.phantomjs_url.replace(/\'/g, "&#039;");
 					options.phantomjs_opt = options.phantomjs_opt.replace(/\'/g, "&#039;");
-					var template = _.template( optionsTemplate, {options:options} );
+					//var template = _.template( optionsTemplate, {options:options} );
+					var template = home_optionsTemplate({options:options});
 		            callback(template, function(){_this.bindEvents();});
 			});			
             

@@ -8,8 +8,9 @@ define([
 	'views/home/log',
 	'views/home/feed',
 	'views/taobao/options',
-	'views/taobao/top'
-	], function ($, _, Backbone, mainHomeView,optionsView,logView,feedView,taobao_optionsView,taobaoTopGoodView) {
+	'views/taobao/top',
+    'views/job/options',
+	], function ($, _, Backbone, mainHomeView,optionsView,logView,feedView,taobao_optionsView,taobaoTopGoodView,job_optionsView) {
 	var pageDownloaded = function(data,fn){
 		var target = $("#main-content"),
 			h = location.hash;
@@ -20,10 +21,13 @@ define([
 		var anchor = $("a[href!=#]").filter(function() {
 			var href = $(this).attr("href");
 			return href == h || href == h.replace("#", "");
-	    }).first();
-	    var link = anchor.attr("href").replace(/^\#/, ""),
-	    	title = anchor.attr("title"),
-			id = link.replace("!/","");
+	    });
+	    var title = 'empty title';
+        if(anchor.length > 0)
+        {
+            title = anchor.attr("title");
+        }
+        var id = h.replace("#!/","");
 		$("#wrapper > section > section > header h1").html(title);
 		if(location.hash)
 		{
@@ -54,10 +58,13 @@ define([
 		var anchor = $("a[href!=#]").filter(function() {
 			var href = $(this).attr("href");
 			return href == h || href == h.replace("#", "");
-	    }).first();
-	    var link = anchor.attr("href").replace(/^\#/, ""),
-			title = anchor.attr("title"),
-			id = link.replace("!/","");
+	    });
+        var title = 'empty title';
+        if(anchor.length > 0)
+        {
+            title = anchor.attr("title");
+        }
+	    var id = h.replace("#!/","");
 		$("#wrapper > section > section > header h1").html(title);
 		if($('#'+id).length > 0 || $(target).html().replace(/\s/g, "") == '')
 		{			
@@ -69,6 +76,7 @@ define([
         routes: {
             // Define some URL routes
         	'!/taobao_options': 'taobao_optionsAction',
+            '!/job_options': 'job_optionsAction',
             '!/options': 'optionsAction',
             '!/log': 'logAction',
             '!/log/:query': 'logSearchAction',
@@ -91,6 +99,9 @@ define([
         },
         taobao_optionsAction: function(){
         	this.render(taobao_optionsView);
+        },
+        job_optionsAction: function(){
+            this.render(job_optionsView);
         },
         feedAction: function(){        	
         	this.render(feedView);
@@ -117,7 +128,8 @@ define([
         },
         render: function(view)
         {
-        	setTimeout(d_loading,100);
+            $("#main-content").html('');
+        	setTimeout(d_loading,100);//reloading
         	view.render(pageDownloaded);
         }
     });

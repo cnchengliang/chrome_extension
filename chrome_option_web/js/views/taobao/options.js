@@ -36,7 +36,7 @@ define([
         render: function (callback) {
         	_this = this;
         	//var template = _.template( optionsTemplate, {} );
-		    callback(optionsTemplate({}), function(){_this.bindEvents();});		
+		    callback(taobao_optionsTemplate({}), function(){_this.bindEvents();});		
             
         }
     });

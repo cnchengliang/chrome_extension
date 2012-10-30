@@ -13,10 +13,11 @@ Array.prototype.remove=function(dx)
 
 var BG = {
 	init: function(){
+		BG.html5db.init();
 		BG.event.chrome.browserAction.onClicked();
 		BG.event.chrome.extension.onRequest();
 		BG.plugin.simple.init();
-		BG.common.menu.init();
+		BG.common.menu.init();		
 	},
 	register: function(namespace)
 	{
@@ -59,9 +60,90 @@ BG.register("BG.common.timer");
 BG.register("BG.common.menu");
 
 BG.register("BG.event.taobao");
+BG.register("BG.event.job51");
+BG.register("BG.event.zhaopin");
 
 
 
+
+BG.common.queue = (function () 
+{
+	var result = '';
+	// Queue class. Has a public append method that expects some kind of Task.
+	// Constructor expects a handler which is a method that takes a ajax task
+	// and a callback. Queue expects the handler to deal with the ajax and run
+	// the callback when it's finished
+	function Queue(handler) {
+	    var queue = [];
+		var self = this;
+		this.start = false;
+		
+		// Function wrapping code.
+		// fn - reference to function.
+		// context - what you want "this" to be.
+		// params - array of parameters to pass to function.
+		var wrapFunction = function(fn, context, params) {
+			return fn.apply(context, params);
+
+		};
+		
+		this.next = function () {
+			// when the handler says it's finished (i.e. runs the next)
+			// We check for more tasks in the queue and if there are any we run again
+			if (queue.length > 0) {
+				self.run();
+			}
+		};
+
+	    this.run = function() {
+	    	self.start = true;
+	        // give the first item in the queue & the next to the handler
+	        handler(queue.shift(), self.next);
+	    };
+
+	    // push the task to the queue. If the queue was empty before the task was pushed
+	    // we run the task.
+	    this.append = function(task, context, params) {
+			var item = wrapFunction(task, context, params);
+	        queue.push(item);
+	    };
+
+	    this.go = function() 
+	    {
+	    	if(!self.start)
+	    	{
+	    		self.run();
+	    	}
+	    };
+	}	
+
+	// small handler that loads the task.url into the task.item and calls the callback 
+	// when its finished
+	var taskHandler = function(task, callback) {
+	    if (task.callback) task.callback();
+	    // call the queue callback.
+		//i=1000000000;while(--i){}
+	    //callback();
+	};
+	
+	// create a queue object with a taskhandler
+	var queue = new Queue(taskHandler);
+	return queue;
+})();
+/*
+// small Task containing item & url & optional callback
+var Task = function (url, callback) {
+	//this.item = 'item';
+	console.log(url);result = 'ok';
+	return {callback:callback};
+};
+
+BG.common.queue.append(Task, this, [1,function(){console.log(result);}]);
+console.log(2);
+BG.common.queue.append(Task, this, [3,function(){console.log(result);}]);
+BG.common.queue.run();
+BG.common.queue.next();
+*/
 
 
 
@@ -121,6 +203,12 @@ BG.common.str2int = function(str)
 	return Number(str.match(/\d/g).join(""));
 }
 
+BG.common.fillZero = function (v)
+{
+	if(v<10){v='0'+v;}
+	return v;
+}
+
 BG.common.getLastObj = function(str)
 {
 	var nsArray = str.split('.');		
@@ -128,6 +216,14 @@ BG.common.getLastObj = function(str)
 	    obj = obj[nsArray[i]];
 	}
 	return obj;
+}
+
+BG.common.strTrim = function(str, is_global) {
+    var result;
+    if(typeof(str) == 'undefined') return '';
+    result = str.replace(/(^\s+)|(\s+$)/g, "");
+    if (is_global.toLowerCase() == "g") result = result.replace(/\s/g, "");
+    return result;
 }
 
 //html5数据库：添加、更新、查询、删除
@@ -164,6 +260,10 @@ BG.html5db = (function ()
 					}
 				}, function (tx,error) {
 					console.log('error exec DB '+error.message);
+					if(callback)
+					{
+						callback(tx,{rows:[]});
+					}
 				});
 			} catch (e) {
 				console.log('error occurred during DB exec.  '.query);
@@ -179,13 +279,29 @@ BG.html5db = (function ()
 				callback(tx,results);
 			}, function (tx,error) {
 				console.log('error getAll '+error.message);
+				if(callback)
+				{
+					callback(tx,{rows:[]});
+				}
 			});
 		});
 	}
-	openDb('sDownload','sDownload',500*1024*1024);
+
+	function init()
+	{
+		var sql_str = ["CREATE TABLE IF NOT EXISTS home_logs (id INTEGER PRIMARY KEY AUTOINCREMENT, content TEXT, url varchar(200), url_title varchar(200),img varchar(200), cdate varchar(20), mdate varchar(20), hashkey varchar(100), state INTEGER, UNIQUE(hashkey) ON CONFLICT FAIL)"];
+		var num = 0, n = sql_str.length;
+		for(var i = 0;i<n;i++)
+		{
+			exec(sql_str[i],function (tx, results) {num++;if(num == n)console.log('initialising table ok');});
+		}
+	}
+
+	openDb('sTool','sTool',500*1024*1024);
 	return {
 		exec:exec,
-		getAll:getAll
+		getAll:getAll,
+		init:init
 	};
 })();
 
@@ -285,6 +401,23 @@ BG.event.chrome.extension.onRequest = function(){
 			{
 				case 'get_rate':BG.event.taobao.taobao_rate_event(request.nick,sendResponse);
 			}
+			return;
+		}
+
+		if(reqtype == 'job' || reqtype == 'house')
+		{
+			var Task = function () {return {callback:function(){}};};
+
+			switch(request.act)
+			{
+				case 'get_51job':Task = function () {return {callback:function(){BG.event.job51.get_event()}};};break;
+				case 'get_zhaopin':Task = function () {return {callback:function(){BG.event.zhaopin.get_event()}};};break;
+				case 'get_58job':Task = function () {return {callback:function(){BG.event.job58.get_event()}};};break;
+				case 'get_58house':Task = function () {return {callback:function(){BG.event.house58.get_event()}};};break;
+				case 'get_soufun':Task = function () {return {callback:function(){BG.event.soufun.get_event()}};};break;
+			}
+			BG.common.queue.append(Task, this, []);
+			BG.common.queue.go();
 			return;
 		}
 
@@ -430,7 +563,7 @@ BG.event.chrome.extension.onRequest = function(){
 		if (reqtype == 'read') {
 			BG.html5db.exec(sql,
 				function (tx, results) {
-					var data = {};
+					var data = [];
 					if (results.rows && results.rows.length) {
 						for(var i=0;i<results.rows.length;i++)
 						{
@@ -513,6 +646,9 @@ BG.plugin.simple = (function ()
 		if(typeof BG.memory.phantomjs_opt_port[port] == 'undefined') return;
 
 		//////////////////////////
+
+		//批量处理url
+		/*
 		var step = 5;
 		var start = port%step;		
 		if(typeof BG.memory.phantomjs_opt_step == 'undefined') BG.memory.phantomjs_opt_step = [];
@@ -521,7 +657,7 @@ BG.plugin.simple = (function ()
 		{
 			BG.memory.phantomjs_opt_port[port].url[BG.memory.phantomjs_opt_port[port].url.length] = urls[BG.memory.phantomjs_opt_step[port] + start];
 			BG.memory.phantomjs_opt_step[port] += step;
-		}
+		}*/
 		//////////////////////////
 
 		
@@ -627,14 +763,14 @@ BG.sse.phantom = (function ()
 		}, 1000);
 	}
 	function CreateEventSource(port)
-	{
-		var phantomjs_opt = BG.memory.phantomjs_opt_port[port];
+	{		
 		arr_num[port] = 0;
 		arr_timer[port] = 0;
 		tick(port);
 		// sse.php sends messages with text/event-stream mimetype.
 		arr_source[port] = new EventSource('http://127.0.0.1:'+port+'/result');		
-		arr_source[port].addEventListener('message', function(event) {			
+		arr_source[port].addEventListener('message', function(event) {		
+			var phantomjs_opt = BG.memory.phantomjs_opt_port[port];	
 			var d = new Date();
 			arr_timer[port] = d;//10秒之后
 			fns[port] = function(){
@@ -1044,6 +1180,340 @@ BG.event.taobao = (function ()
 		get_taobao_rate:get_taobao_rate
 	};
 })();
+
+BG.event.job51 = (function () 
+{
+	var myDate = new Date();
+	var from_date = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate());
+	var page = 1;
+	var port = 9080;
+	function get_jobs(data)
+	{
+		console.log(data);
+		myDate = new Date();
+		var timeStr = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate()) + ' ' + BG.common.fillZero(myDate.getHours()) + ':' + BG.common.fillZero(myDate.getMinutes()) + ':' + BG.common.fillZero(myDate.getSeconds());
+		var go = false;
+		for(var i=0,n=data.length;i<n;i++)
+		{
+			var content = data[i][0]+"["+data[i][2]+"]"+"["+data[i][3]+"]";//+"["+data[i][4]+"]";
+			var time = data[i][4];			
+			var url = data[i][1];
+
+			if(url == 'null') 
+			{
+				go = false;
+				continue;
+			}
+
+			if(time_compare(from_date,time))
+			{
+				//BG.plugin.simple.init(port);					
+				//BG.sse.phantom.stopCount(port);
+				break;
+			}else
+			{
+
+				BG.html5db.exec("INSERT INTO home_logs (content,hashkey,cdate,mdate,state,url_title,url) VALUES('"+content+"','"+BG.common.md5(content+'51job')+"','" + timeStr +"','" + timeStr +"',1,'51job','"+url+"')",
+					function (tx, results) {
+						console.log('ok');						
+				});
+			}
+			go = true;
+		}
+		if(go)
+		{
+			page++;
+			get_event();
+		}else
+		{
+			BG.common.queue.next();
+			BG.common.notice('51job finished','');
+		}
+	}
+
+	function time_compare (date_str1,date_str2)
+	{
+		var time_stamp1 = Date.parse(date_str1.replace(/\-/g,"/"));
+		var time_stamp2 = Date.parse(date_str2.replace(/\-/g,"/"));
+		return time_stamp1>time_stamp2
+	}
+
+	function get_event()
+	{	
+		console.log('51job');
+		var url = "http://search.51job.com/jobsearch/search_result.php?fromJs=1&jobarea=1902&district=0000&curr_page="+page+"&lang=c";
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//table[@id='resultList']/tbody/tr[@class='tr0']","cols":"/td[2]/a;/td[2]/a;/td[3]/a;/td[4]/span;/td[5]/span","attr":"textContent;href;textContent;textContent;textContent"}]}};
+//,{"action":"auto_click","xpath":"//table[@class='searchPageNav']/tbody/tr/td[last()]/a"}
+		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.job51.get_jobs','limit_page':1000};
+		
+		BG.plugin.simple.route(port);
+	}
+	return {
+		get_event:get_event,
+		get_jobs:get_jobs
+	};
+})();
+
+BG.event.zhaopin = (function () 
+{
+	var myDate = new Date();
+	var from_date = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate());
+	var page = 1;
+	var port = 9080;
+	function get_jobs(data)
+	{
+		console.log(data);
+		myDate = new Date();
+		var timeStr = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate()) + ' ' + BG.common.fillZero(myDate.getHours()) + ':' + BG.common.fillZero(myDate.getMinutes()) + ':' + BG.common.fillZero(myDate.getSeconds());
+		var go = false;
+		for(var i=0,n=data.length;i<n;i++)
+		{
+			var content = data[i][0]+"["+data[i][2]+"]"+"["+data[i][3]+"]";//+"["+data[i][4]+"]";
+			var time = '20'+data[i][4];			
+			var url = data[i][1];
+			if(url == 'null') 
+			{
+				go = false;
+				continue;
+			}
+
+			if(time_compare(from_date,time))
+			{
+				//BG.plugin.simple.init(port);					
+				//BG.sse.phantom.stopCount(port);				
+				break;
+			}else
+			{
+				BG.html5db.exec("INSERT INTO home_logs (content,hashkey,cdate,mdate,state,url_title,url) VALUES('"+content+"','"+BG.common.md5(content+'zhaopin')+"','" + timeStr +"','" + timeStr +"',1,'zhaopin','"+url+"')",
+					function (tx, results) {
+						console.log('ok');						
+				});
+			}
+			go = true;
+		}
+		if(go)
+		{			
+			page++;
+			get_event();
+		}else
+		{
+			BG.common.queue.next();
+			BG.common.notice('zhaopin finished','');
+		}
+	}
+
+	function time_compare (date_str1,date_str2)
+	{
+		var time_stamp1 = Date.parse(date_str1.replace(/\-/g,"/"));
+		var time_stamp2 = Date.parse(date_str2.replace(/\-/g,"/"));
+		return time_stamp1>time_stamp2
+	}
+
+	function get_event()
+	{
+		console.log('zhaopin');
+		var url = "http://sou.zhaopin.com/jobs/jobsearch_adv.aspx?jl=749&sm=0&p="+page+"&sf=0";
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//table[@id='joblist']/tbody/tr","cols":"/td[2]/a;/td[2]/a;/td[4]/a;/td[5];/td[6]","attr":"textContent;href;textContent;textContent;textContent"}]}};
+//,{"action":"auto_click","xpath":"//table[@class='searchPageNav']/tbody/tr/td[last()]/a"}
+		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.zhaopin.get_jobs','limit_page':1000};
+		
+		BG.plugin.simple.route(port);
+	}
+	return {
+		get_event:get_event,
+		get_jobs:get_jobs
+	};
+})();
+
+BG.event.job58 = (function () 
+{
+	var page = 1;
+	var port = 9080;
+	function get_jobs(data)
+	{
+		console.log(data);
+		var myDate = new Date();
+		var timeStr = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate()) + ' ' + BG.common.fillZero(myDate.getHours()) + ':' + BG.common.fillZero(myDate.getMinutes()) + ':' + BG.common.fillZero(myDate.getSeconds());
+		var go = false;
+		for(var i=0,n=data.length;i<n;i++)
+		{
+			var content = data[i][0]+"["+data[i][2]+"]"+"["+data[i][3]+"]";//+"["+data[i][4]+"]";
+			var time = data[i][4];			
+			var url = data[i][1];
+			if(url == 'null') 
+			{
+				go = false;
+				continue;
+			}
+
+			if(time.indexOf("今天") == -1 && time.indexOf("小时") == -1)
+			{
+				//BG.plugin.simple.init(port);					
+				//BG.sse.phantom.stopCount(port);				
+				break;
+			}else
+			{
+				if(content == 'null') continue;
+
+				BG.html5db.exec("INSERT INTO home_logs (content,hashkey,cdate,mdate,state,url_title,url) VALUES('"+content+"','"+BG.common.md5(content+'job58')+"','" + timeStr +"','" + timeStr +"',1,'job58','"+url+"')",
+					function (tx, results) {
+						console.log('ok');						
+				});
+			}
+			go = true;
+		}
+		if(go)
+		{
+			page++;
+			get_event();
+		}else
+		{
+			BG.common.queue.next();
+			BG.common.notice('job58 finished','');
+		}
+	}
+
+	function get_event()
+	{
+		console.log('58job');
+		var url = "http://cs.58.com/job/pn"+page;
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//div[@id='maincon']/table[2]/tbody/tr","cols":"/td[2]/a[1];/td[2]/a[1];/td[3]/a;/td[4];/td[5]","attr":"textContent;href;textContent;textContent;textContent"}]}};
+//,{"action":"auto_click","xpath":"//table[@class='searchPageNav']/tbody/tr/td[last()]/a"}
+		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.job58.get_jobs','limit_page':1000};
+		
+		BG.plugin.simple.route(port);
+	}
+	return {
+		get_event:get_event,
+		get_jobs:get_jobs
+	};
+})();
+
+
+BG.event.house58 = (function () 
+{
+	var page = 1;
+	var port = 9080;
+	function get_house(data)
+	{
+		console.log(data);
+		var myDate = new Date();
+		var timeStr = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate()) + ' ' + BG.common.fillZero(myDate.getHours()) + ':' + BG.common.fillZero(myDate.getMinutes()) + ':' + BG.common.fillZero(myDate.getSeconds());
+		var go = false;
+		for(var i=0,n=data.length;i<n;i++)
+		{
+			go = false;
+			var content = BG.common.strTrim(data[i][0],"g")+"["+BG.common.strTrim(data[i][2],"g")+"]";
+			var time = data[i][3];			
+			var url = data[i][1];
+			if(url == 'null') 
+			{
+				continue;
+			}
+
+			if(time.indexOf("今天") == -1 && time.indexOf("小时") == -1)
+			{
+				continue;
+			}else
+			{
+				if(content == 'null') continue;
+				BG.html5db.exec("INSERT INTO home_logs (content,hashkey,cdate,mdate,state,url_title,url) VALUES('"+content+"','"+BG.common.md5(content+'house58')+"','" + timeStr +"','" + timeStr +"',1,'house58','"+url+"')",
+					function (tx, results) {
+						console.log('ok');						
+				});
+			}
+			go = true;
+		}
+		if(go)
+		{
+			page++;
+			get_event();
+		}else
+		{
+			BG.common.queue.next();
+			BG.common.notice('house58 finished','');
+		}
+	}
+
+	function get_event()
+	{
+		console.log('58house');
+		var url = "http://cs.58.com/zufang/pn"+page+"/?minprice=300_600&selpic=2&ispic=1";
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//div[@id='infolist']/table/tbody/tr[@logr]","cols":"/td[2]/a[1];/td[2]/a[1];/td[3]/b;/td[4]","attr":"textContent;href;textContent;textContent"}]}};
+//,{"action":"auto_click","xpath":"//table[@class='searchPageNav']/tbody/tr/td[last()]/a"}
+		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.house58.get_house','limit_page':1000};
+		
+		BG.plugin.simple.route(port);
+	}
+	return {
+		get_event:get_event,
+		get_house:get_house
+	};
+})();
+
+
+
+BG.event.soufun = (function () 
+{
+	var page = 1;
+	var port = 9080;
+	function get_house(data)
+	{
+		console.log(data);
+		var myDate = new Date();
+		var timeStr = myDate.getFullYear() + '-' + BG.common.fillZero(myDate.getMonth() + 1) + '-' + BG.common.fillZero(myDate.getDate()) + ' ' + BG.common.fillZero(myDate.getHours()) + ':' + BG.common.fillZero(myDate.getMinutes()) + ':' + BG.common.fillZero(myDate.getSeconds());
+		var go = false;
+		for(var i=0,n=data.length;i<n;i++)
+		{
+			go = false;
+			var content = BG.common.strTrim(data[i][0],"g")+"["+BG.common.strTrim(data[i][2],"g")+"]"+"["+BG.common.strTrim(data[i][3],"g")+"]";
+			var url = data[i][1];
+			if(url == 'null') 
+			{
+				continue;
+			}
+
+			if(content == 'null') continue;
+			BG.html5db.exec("INSERT INTO home_logs (content,hashkey,cdate,mdate,state,url_title,url) VALUES('"+content+"','"+BG.common.md5(content+'soufun')+"','" + timeStr +"','" + timeStr +"',1,'soufun','"+url+"')",
+				function (tx, results) {
+					console.log('ok');						
+			});
+
+			go = true;
+		}
+		if(go)
+		{
+			page++;
+			get_event();
+		}else
+		{
+			BG.common.queue.next();
+			BG.common.notice('soufun finished','');
+		}
+	}
+
+	function get_event()
+	{
+		console.log('soufun');
+		var url = "http://newhouse.cs.soufun.com/house/%b3%a4%c9%b3__%b6%fe%bb%b7%d2%d4%c4%da____%d7%a1%d5%ac____7000%d2%d4%cf%c2_______"+page+"_.htm";
+		var phantomjs_opt = {"option":{"route":"other.tool","type":"action","result_type":"notice","actions":[{"action":"auto_get_content","row_xpath":"//div[@class='searchListNoraml']","cols":"/div[@class='photo']/a/img;/div[@class='photo']/a;/div[@class='info']/ul/li[@class='s2']/font;/div[@class='anther']/div[@class='antherBox']/div[@class='price']","attr":"alt;href;textContent;textContent"}]}};
+//,{"action":"auto_click","xpath":"//table[@class='searchPageNav']/tbody/tr/td[last()]/a"}
+		if(typeof BG.memory.phantomjs_opt_port == 'undefined') BG.memory.phantomjs_opt_port = [];
+		BG.memory.phantomjs_opt_port[port] = {'url':[url],'param':'','opt':phantomjs_opt,'callback':'BG.event.soufun.get_house','limit_page':1000};
+		
+		BG.plugin.simple.route(port);
+	}
+	return {
+		get_event:get_event,
+		get_house:get_house
+	};
+})();
+
+
 BG.common.menu = (function () 
 {
 	var menuid = {'taobao_rate':0};	
@@ -1079,6 +1549,9 @@ BG.common.menu = (function ()
 	};
 })();
 
+
+
+
 BG.init();
 //C:\Users\root\Desktop\beta\chrome>C:\Users\root\AppData\Local\Google\Chrome\Application\chrome.exe --pack-extension=C:\Users\root\Desktop\beta\chrome\chrome_tools --pack-extension-key=C:\Users\root\Desktop\beta\chrome\chrome_tools.pem
 
@@ -1097,4 +1570,17 @@ BG.init();
 
 //["http://127.0.0.1/php_tools/slim/data/0a25c0737b9f4c01ad57459821446278.html"]
 
+/*var myDate = new Date();
+	var cDate = myDate.getFullYear() + '-' + (myDate.getMonth() + 1) + '-' + myDate.getDate();
+
+BG.html5db.exec("INSERT INTO home_logs (content,cdate,state,url_title) VALUES('content"+myDate+"','" + cDate +"',1,'chrome')",
+				function (tx, results) {
+					console.log('ok');
+			});
+BG.html5db.exec("SELECT * FROM home_logs WHERE state=1 LIMIT 0,10",
+				function (tx, results) {
+					console.log(results);
+			});*/
+
+//BG.event.job51.get_event();
 

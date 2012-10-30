@@ -35,7 +35,7 @@
 	},
 	name: "main",
 	uglify: {
-        beautify: false
+        beautify: true
     },
 	out: "../../options.js"
 })

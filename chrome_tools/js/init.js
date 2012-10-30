@@ -1,6 +1,6 @@
 //python ../pyphantomjs.py --cookies-file=cookies.txt --load-images=no --ignore-ssl-errors=yes init.js taobao.comment
 
-var url = '',port = 9080,params = {},next_option = {},cur_option = {},send,cur_action = 0;
+var url = '',port = 9080,params = {},next_option = {},cur_option = {},send,cur_action = 0,try_num = 5,cur_try = 0;
 
 if (phantom.args.length === 0) {
     console.log('Try to pass some args when invoking this script!');
@@ -27,7 +27,7 @@ var urls = cur_option.urls;
 var url_cur = 0;*/
 var page = require('webpage').create();
 var server = require('webserver').create();
-page.settings.userAgent = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/535.7 (KHTML, like Gecko) Chrome/16.0.912.63 Safari/535.7';
+page.settings.userAgent = 'Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.1 (KHTML, like Gecko) Chrome/21.0.1180.89 Safari/537.1';
 var loaded = false;
 
 //错误提示
@@ -127,9 +127,23 @@ var evaluateWithVars = function(page, func, vars)
 page.onLoadFinished = function (status) {
     console.log('status :'+status);
 	if (status !== 'success') {
-        do_log('Unable to access network:'+url);
-        phantom.exit();       
+		var cur_url = page.evaluate(function () {
+		    return location.href;
+		});
+        do_log('Unable to access network:'+cur_url);
+        if(cur_try > try_num)
+        {
+        	phantom.exit();
+        }
+        cur_try++;
+        window.setTimeout(function () {
+            page.evaluate(function () {
+				location.href = location.href;
+			});
+        }, 500);
+        
     } else if(!loaded){
+    	cur_try = 0;
     	loaded = true;
     	console.log('loading js...');
     	cur_option = next_option;
@@ -212,6 +226,7 @@ var listening = server.listen(port, function (request, response) {
 					function() { document.location.href = _VARS_url; },
 					{ "url": url }
 				);
+				//do_log('new access network:'+url);
 				next_option = data.option;
 			}else
 			{

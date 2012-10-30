@@ -304,6 +304,10 @@ nav ul {
 	padding-left: 50px;
 }
 
+nav.drilldownMenu {
+	height: 100%;
+}
+
 #wrapper > section > aside > nav > h1 > button {
     position: absolute;
     left: 10px;
@@ -617,36 +621,3 @@ fieldset div.row-fluid {
 .row-fluid > [class*="span"] {
 margin-left: 0;
 }
-
-
-/* Base class */
-.bs-docs-result {
-  position: relative;
-  margin: 20px 0;
-  padding: 39px 19px 14px;
-  *padding-top: 19px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  -webkit-border-radius: 4px;
-     -moz-border-radius: 4px;
-          border-radius: 4px;
-}
-
-/* Echo out a label for the example */
-.bs-docs-result:after {
-  content: "结果显示：";
-  position: absolute;
-  top: -1px;
-  left: -1px;
-  padding: 3px 7px;
-  font-size: 12px;
-  font-weight: bold;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
-  color: #9da0a4;
-  -webkit-border-radius: 4px 0 4px 0;
-     -moz-border-radius: 4px 0 4px 0;
-          border-radius: 4px 0 4px 0;
-}
-
-body,p,form,ul,li{margin:0;padding:0;list-style:none}
